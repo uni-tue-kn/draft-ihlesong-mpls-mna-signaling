@@ -233,12 +233,11 @@ The security issues discussed in {{?I-D.ietf-mpls-mna-hdr}}, {{?rfc8476}}, and {
 
 This document requests the allocation of following codepoints in the "IGP MSD-Types" registry.
 
-| Value | Name                     | Data Plane | Reference                        |
+| Value | Name                     | Data Plane | Reference     |
 | ----- | ------------------------ | ---------- |
-| 3     | Readable Label Depth     | MPLS       | {{?I-D.draft-ietf-mpls-mna-fwk}} |
-| 4     | MLD of select-scoped NAS | MPLS       | This document                    |
-| 5     | MLD of I2E-scoped NAS    | MPLS       | This document                    |
-| 6     | MLD of HBH-scoped NAS    | MPLS       | This document                    |
+| TBA1  | MLD of select-scoped NAS | MPLS       | This document |
+| TBA2  | MLD of I2E-scoped NAS    | MPLS       | This document |
+| TBA3  | MLD of HBH-scoped NAS    | MPLS       | This document |
 {: #table_iana title="IGP Signaling Sub-TLV allocation."}
 
 --- back
