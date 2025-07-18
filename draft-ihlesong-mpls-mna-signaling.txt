@@ -5,10 +5,10 @@
 Multiprotocol Label Switching                                    F. Ihle
 Internet-Draft                                   University of Tuebingen
 Intended status: Standards Track                                 X. Song
-Expires: 15 December 2025                                ZTE Corporation
+Expires: 19 January 2026                                 ZTE Corporation
                                                                 M. Menth
                                                  University of Tuebingen
-                                                            13 June 2025
+                                                            18 July 2025
 
 
                   Signaling MNA Capabilities Using IGP
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 December 2025.
+   This Internet-Draft will expire on 19 January 2026.
 
 Copyright Notice
 
@@ -427,24 +427,17 @@ Table of Contents
    This document requests the allocation of following codepoints in the
    "IGP MSD-Types" registry.
 
-    +=======+================+=======+===============================+
-    | Value | Name           | Data  | Reference                     |
-    |       |                | Plane |                               |
-    +=======+================+=======+===============================+
-    | 3     | Readable Label | MPLS  | [I-D.draft-ietf-mpls-mna-fwk] |
-    |       | Depth          |       |                               |
-    +-------+----------------+-------+-------------------------------+
-    | 4     | MLD of select- | MPLS  | This document                 |
-    |       | scoped NAS     |       |                               |
-    +-------+----------------+-------+-------------------------------+
-    | 5     | MLD of I2E-    | MPLS  | This document                 |
-    |       | scoped NAS     |       |                               |
-    +-------+----------------+-------+-------------------------------+
-    | 6     | MLD of HBH-    | MPLS  | This document                 |
-    |       | scoped NAS     |       |                               |
-    +-------+----------------+-------+-------------------------------+
+     +=======+==========================+============+===============+
+     | Value | Name                     | Data Plane | Reference     |
+     +=======+==========================+============+===============+
+     | TBA1  | MLD of select-scoped NAS | MPLS       | This document |
+     +-------+--------------------------+------------+---------------+
+     | TBA2  | MLD of I2E-scoped NAS    | MPLS       | This document |
+     +-------+--------------------------+------------+---------------+
+     | TBA3  | MLD of HBH-scoped NAS    | MPLS       | This document |
+     +-------+--------------------------+------------+---------------+
 
-                Table 1: IGP Signaling Sub-TLV allocation.
+                 Table 1: IGP Signaling Sub-TLV allocation.
 
 6.  References
 
