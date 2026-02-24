@@ -92,10 +92,11 @@ This document defines new TLVs for the MPLS echo request/reply messages {{rfc802
 ### Abbreviations
 This document makes use of the terms defined in {{?I-D.ietf-mpls-mna-hdr}} and in {{?I-D.ietf-mpls-mna-fwk}}.
 
-| Abbreviation | Name                     | Description                                                                     | Reference                  |
-| ------------ | ------------------------ | ------------------------------------------------------------------------------- | -------------------------- |
-| NAS          | Network Action Sub-stack | The number of LSEs a node can parse.                                            | {{?I-D.ietf-mpls-mna-hdr}} |
-| NAS_MLD      | NAS Maximum Label Depth  | The maximum number of LSEs in a NAS that a node can process, defined per scope. | This document              |
+| Abbreviation | Name                     | Description                                                                              | Reference                  |
+| ------------ | ------------------------ | ---------------------------------------------------------------------------------------- | -------------------------- |
+| NAS          | Network Action Sub-stack | A stack of related LSEs in the MPLS stack containing network actions and ancillary data. | {{?rfc9789}}               |
+| RLD          | Readable Label Depth     | The number of LSEs a node can parse.                                                     | {{?I-D.ietf-mpls-mna-hdr}} |
+| NAS_MLD      | NAS Maximum Label Depth  | The maximum number of LSEs in a NAS that a node can process, defined per scope.          | This document              |
 {: #table_abbrev title="Abbreviations."}
 
 
@@ -151,7 +152,7 @@ Based on the signaled parameters, the ingress LER MUST ensure the following when
 
 ### Example
 
-{{fig-rld_example}} illustrates the different NAS_MLD sizes in an MPLS stack that are signaled to the LSR.
+{{fig-nas_sizes_example}} illustrates the different NAS_MLD sizes in an MPLS stack that are signaled to the LSR.
 In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-scoped NAS of 7 LSEs, and an I2E-scoped NAS of 4 LSEs.
 
 ~~~~
@@ -176,6 +177,7 @@ The MNA capability discovery mechanism operates as follows:
   - The NAS_MLD_Select for a specific node is the value reported by that node.
   - The NAS_MLD_I2E is the value reported by the egress node.
   - The path-wide supported opcodes for HBH-scoped NAS is the intersection of opcodes supported by all nodes.
+
 The ingress LER SHOULD perform MNA capability discovery before pushing MNA-enabled label stacks onto a path. The ingress LER SHOULD re-query capabilities when the path changes, e.g., due to IGP reconvergence or Fast Reroute activation.
 
 ## MNA Capabilities Query TLV
@@ -185,7 +187,7 @@ Its format is as follows:
 ~~~~
 {::include ./drawings/query-tlv.txt}
 ~~~~
-{: #fig-query-tlv title="MNA Capabilties Query TLV."}
+{: #fig-query-tlv title="MNA Capabilities Query TLV."}
 
 The fields are defined as follows:
 
@@ -211,7 +213,7 @@ The MNA Capabilities Response TLV is carried in the MPLS Echo Reply message. Its
 ~~~~
 {::include ./drawings/response-tlv.txt}
 ~~~~
-{: #fig-response-tlv title="MNA Capabilties Response TLV."}
+{: #fig-response-tlv title="MNA Capabilities Response TLV."}
 
 The fields are defined as follows:
 
@@ -295,6 +297,14 @@ According to RFC 8029, the handling depends on the TLV type value range.
 The TLV type for the MNA Capabilities Query TLV SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
 This allows the ingress LER to detect nodes that do not support MNA.
 
+If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, it MUST reply with the following Return Code for MPLS echo reply messages:
+
+| Value | Meaning           | Reference     |
+| ----- | ----------------- | ------------- |
+| TBA3  | MNA not supported | This document |
+{: #table_return_code title="New return code."}
+
+
 # Example
 Consider an SR-MPLS path with three LSRs: R1, R2 (transit), and R3 (egress). The ingress LER R0 wants to push an HBH-scoped NAS and a select-scoped NAS for R2 along this path.
 R0 sends MPLS echo requests in traceroute mode with all Query Flags set. The responses are:
@@ -320,7 +330,7 @@ The security considerations described in {{?rfc8029}} apply to this document.
 The MNA capability discovery mechanism reveals information about node capabilities, which could potentially be exploited by an attacker to craft targeted attacks against nodes with limited MNA support.
 Nodes that support MNA capability discovery SHOULD support configuration options to enable or disable the MNA Capabilities Query/Response functionality.
 By default, MNA capability discovery SHOULD be enabled only within an MNA-capable MPLS domain.
-The security considerations from {{?I-D.ietf-mpls-mna-hdr}} also apply.
+The security considerations from {{?I-D.ietf-mpls-mna-hdr}} and {{?rfc9789}} also apply.
 
 # IANA Considerations
 This section requests new TLVs and sub-TLVs.
@@ -329,10 +339,10 @@ This section requests new TLVs and sub-TLVs.
 IANA is requested to assign two new TLVs from the "TLV" registry in the "Multiprotocol Label Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group.
 The TLV values SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
 
-| Value | TLV Name                  | Reference     | Sub-TLV Registry |
-| ----- | ------------------------- | ------------- | ---------------- |
-| TBA1  | MNA Capabilities Query    | This document | No               |
-| TBA2  | MNA Capabilities Response | This document | See x.x          |
+| Value | TLV Name                  | Reference     | Sub-TLV Registry    |
+| ----- | ------------------------- | ------------- | ------------------- |
+| TBA1  | MNA Capabilities Query    | This document | No                  |
+| TBA2  | MNA Capabilities Response | This document | See {{table_iana2}} |
 {: #table_iana title="New TLVs."}
 
 ## New Sub-TLV Registry
