@@ -1,5 +1,5 @@
 ---
-title: "Signaling MNA Capabilities Using IGP"
+title: "Signaling MNA Capabilities Using LSP Ping"
 abbrev: "SIG"
 category: std
 
@@ -21,7 +21,7 @@ venue:
   mail: "mpls@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/mpls/"
   github: "uni-tue-kn/draft-ihlesong-mpls-mna-signaling"
-  latest: "https://uni-tue-kn.github.io/draft-ihle-song-mpls-mna-signaling/draft-ihle-song-mpls-mna-signaling.html"
+  latest: "https://uni-tue-kn.github.io/draft-ihlesong-mpls-mna-signaling/draft-ihlesong-mpls-mna-signaling.html"
 
 author:
  -
@@ -68,23 +68,22 @@ informative:
 
 --- abstract
 
-This document defines capabilities of nodes supporting MPLS Network Actions (MNA) and how to signal them using IS-IS and OSPF.
-The capabilities include the Readable Label Depth (RLD), supported network action opcodes, and the maximum sizes of differently scoped Network Action Sub-stacks (NAS), called the NAS_MLD.
-For IS-IS and OSPF signaling, sub-TLV encodings based on existing mechanisms to signal node- and link-specific capabilities are leveraged.
+This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (NAS_MLD), and supported network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions.
 
 --- middle
 
 # Introduction
+The MPLS Network Actions (MNA) framework {{?I-D.ietf-mpls-mna-hdr}} provides a general mechanism for encoding network actions and their data in the MPLS label stack.
+Network actions are encoded in Network Action Sub-stacks (NAS) that are placed within (ISD) or follow after (PSD) the MPLS label stack.
+The MNA header encoding is defined in {{?I-D.ietf-mpls-mna-hdr}}.
+To correctly construct MPLS label stacks containing network actions, the ingress LER needs to know the MNA capabilities of each node along the path.
+These capabilities include:
 
-With the MPLS Network Action (MNA) framework, network actions are encoded in the MPLS stack.
-Those can be added to the MPLS tack using in-stack data (ISD), or follow after the MPLS stack using post-stack data (PSD).
-{{?I-D.ietf-mpls-mna-hdr}} defines the encoding of such network actions and their data for ISD in a so-called Network Action Substack (NAS).
-These network actions are processed by all nodes on a path (hop-by-hop, HBH), by only selected nodes, or on an ingress-to-egress (I2E) basis.
-LSRs have different capabilites that depend on available hardware resources, e.g., the number of LSEs they can parse.
-An ingress LER that pushes network actions to an MPLS stack MUST ensure that all nodes on the path can read and support the network actions.
-For that purpose, the MNA capabilities of an LSR need to be signaled to the ingress LER.
+1. The Readable Label Depth (RLD): the number of Label Stack Entries (LSEs) a node can parse without performance impact.
+2. The NAS Maximum Label Depth (NAS_MLD): the maximum supported NAS size for each scope (select, HBH, I2E).
+3. The supported network action opcodes.
 
-This document defines the required parameters of LSRs regarding their MNA capability and proposes a signaling extension using an IGP such as IS-IS and OSPF.
+This document defines new TLVs for the MPLS echo request/reply messages {{rfc8029}} to query and report MNA capabilities. The mechanism supports both "ping" mode (querying only the egress node) and "traceroute" mode (querying all nodes along the path).
 
 ## Terminology
 
@@ -92,6 +91,13 @@ This document defines the required parameters of LSRs regarding their MNA capabi
 
 ### Abbreviations
 This document makes use of the terms defined in {{?I-D.ietf-mpls-mna-hdr}} and in {{?I-D.ietf-mpls-mna-fwk}}.
+
+| Abbreviation | Name                     | Description                                                                     | Reference                  |
+| ------------ | ------------------------ | ------------------------------------------------------------------------------- | -------------------------- |
+| NAS          | Network Action Sub-stack | The number of LSEs a node can parse.                                            | {{?I-D.ietf-mpls-mna-hdr}} |
+| NAS_MLD      | NAS Maximum Label Depth  | The maximum number of LSEs in a NAS that a node can process, defined per scope. | This document              |
+{: #table_abbrev title="Abbreviations."}
+
 
 # Definition of MNA Capabilities
 
@@ -158,86 +164,187 @@ In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-
 An LSR MUST signal the network action opcodes it supports.
 If a network action opcode is not signaled, it is assumed that this opcode is not supported by the node.
 
-# Signaling MNA Capabilites
-This section defines a method for IGP routers to advertise the maximum supported numbers of LSEs in I2E-scoped NAS, select-scoped NAS, and HBH-scoped NAS, i.e., the per-scope NAS_MLD, the RLD, and supported opcodes.
+# LSP Ping MNA Operation Overview
+The MNA capability discovery mechanism operates as follows:
 
-## Using IS-IS
-This section defines the signaling of the RLD and the NAS_MLD that can be supported for specific NAS using IS-IS node and link advertisement.
-{{?rfc7981}} defines the IS-IS Router Capability TLV that supports optional sub-TLVs to signal capabilities.
-Further, {{?rfc8491}} introduces a sub-TLV for node- and link-specific advertisement based on {{?rfc7981}}.
-They are used to signal MNA capabilities with IS-IS.
+1.  The ingress LER sends MPLS echo request messages containing the MNA Capabilities Query TLV. In traceroute mode, echo requests are sent with incrementing TTL values to reach each node on the path. In ping mode, a single echo request is sent to the egress LER.
+2. Each node that receives the echo request and supports MNA capability discovery responds with an MPLS echo reply containing the MNA Capabilities Response TLV. The response includes sub-TLVs corresponding to the queried capabilities.
+3. The ingress LER aggregates the received responses to determine path-wide MNA constraints. Specifically:
 
-### NAS_MLD Advertisement
-To signal the per-scope NAS_MLD, this document introduces new sub-TLVs based on {{?rfc8491}}.
-The NAS_MLD Sub-TLV is defined node- or link-specific as below:
+  - The path-wide RLD is the minimum RLD reported by any node on the path.
+  - The path-wide NAS_MLD_HBH is the minimum NAS_MLD_HBH reported by any node.
+  - The NAS_MLD_Select for a specific node is the value reported by that node.
+  - The NAS_MLD_I2E is the value reported by the egress node.
+  - The path-wide supported opcodes for HBH-scoped NAS is the intersection of opcodes supported by all nodes.
+The ingress LER SHOULD perform MNA capability discovery before pushing MNA-enabled label stacks onto a path. The ingress LER SHOULD re-query capabilities when the path changes, e.g., due to IGP reconvergence or Fast Reroute activation.
 
-~~~~
-{::include ./drawings/is-is_signaling.txt}
-~~~~
-{: #fig-is-is_signaling title="NAS_MLD Sub-TLV for IS-IS signaling."}
-
-- Type:
-   - 15 (link-specifc) {{?rfc8491}}
-   - 23 (node-specific) {{?rfc8491}}
-- Length: variable (multiple of 2 octets); represents the total length of the Value field
-- Value: field consists of one or more pairs of a 1-octet MSD-Type and 1-octet MSD-Value
-   - NAS_MLD-Type: value defined in the "IGP MSD-Types" registry created by the IANA Considerations section of this document (I2E, HBH, or Select).
-   - NAS_MLD-Value: number in the range of 2-17.
-
-This sub-TLV is optional.
-The scope of the advertisement is specific to the deployment.
-
-### RLD Advertisment
-For the RLD advertisement, a sub-TLV based on {{?rfc8491}} is requested in {{?I-D.draft-ietf-mpls-mna-fwk}}.
-
-### Supported Network Action Opcodes
-tbd
-
-## Using OSPF
-This section defines the signaling of the RLD and the NAS_MLD that can be supported for specific NAS using OSPF node and link advertisement.
-{{?rfc7770}} defines the OSPF RI Opaque LSA which is used in {{?rfc8476}} to carry the node-specific provisioned SID depth of the router originating the Router Information (RI) LSA in a sub-TLV.
-Further, {{?rfc7684}} defines link-specific advertisements using the optional sub-TLV of the OSPFv2 Extended Link TLV for OSPFv2, and {{?rfc8362}} defines link-specific advertisements using the optional sub-TLV of the E-Router-LSA TLV.
-
-### NAS_MLD Advertisement
-To signal the per-scope NAS_MLD, this document introduces new sub-TLVs based on {{?rfc7684}}, {{?rfc8476}}, and {{?rfc8362}}.
-The NAS_MLD Sub-TLV is defined node- or link-specific as below:
+## MNA Capabilities Query TLV
+The MNA Capabilities Query TLV is carried in the MPLS Echo Request message.
+Its format is as follows:
 
 ~~~~
-{::include ./drawings/ospf_signaling.txt}
+{::include ./drawings/query-tlv.txt}
 ~~~~
-{: #fig-ospf_signaling title="NAS_MLD Sub-TLV for OSPF signaling."}
+{: #fig-query-tlv title="MNA Capabilties Query TLV."}
 
-- Type:
-    - 6 (link-specific, OSPFv2 {{?RFC7684}})
-    - 9 (link-specific, OSPFv3 {{?RFC8362}})
-    - 12 (node-specific, OSPFv2 and OSPFv3 {{?rfc8476}})
-- Length: variable (in octets); represents the total length of the Value field
-- Value: field consists of one or more pairs of a 2-octet MSD-Type and 2-octet MSD-Value
-   - NAS_MLD-Type: value defined in the "IGP MSD-Types" registry created by the IANA Considerations section of this document (I2E, HBH, or Select).
-   - NAS_MLD-Value: number in the range of 2-17.
+The fields are defined as follows:
 
-This sub-TLV is optional.
-The scope of the advertisement is specific to the deployment.
+- Type: Indicates the MNA Capabilities Query TLV. The value is TBA1.
+- Length: The length of the Value field in octets. For this TLV, Length is 4.
+- Query Flags: An 8-bit field indicating which capabilities are being queried:
 
-### RLD Advertisment
-For the RLD advertisement, a sub-TLV is requested in {{?I-D.draft-ietf-mpls-mna-fwk}}.
+| Bit | Name          | Description                                         |
+| --- | ------------- | --------------------------------------------------- |
+| 0   | QUERY_RLD     | Query the Readable Label Depth                      |
+| 1   | QUERY_NAS_MLD | Query NAS Maximum Label Depth (scopes)              |
+| 2   | QUERY_OPCODES | Query supported network action opcodes              |
+| 3-7 | Reserved      | MUST be set to zero on transmit, ignored on receipt |
+{: #query-flags title="Query Flags."}
 
-### Supported Network Action Opcodes
-tbd
+- Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
+
+A node that receives an MNA Capabilities Query TLV with all Query Flags set to zero SHOULD respond with all available MNA capabilities.
+
+## MNA Capabilities Response TLV
+The MNA Capabilities Response TLV is carried in the MPLS Echo Reply message. Its format is as follows:
+
+~~~~
+{::include ./drawings/response-tlv.txt}
+~~~~
+{: #fig-response-tlv title="MNA Capabilties Response TLV."}
+
+The fields are defined as follows:
+
+- Type: Indicates the MNA Capabilities Response TLV. The value is TBA2.
+- Length: The length of the Value field in octets.
+
+The Value field consists of one or more sub-TLVs as defined in the following sections. The responding node MUST include sub-TLVs corresponding to the flags set in the Query TLV. If no flags were set in the query, the responding node SHOULD include all sub-TLVs for which it has information.
+
+### RLD Sub-TLV
+The RLD Sub-TLV reports the Readable Label Depth of the responding node.
+
+~~~~
+{::include ./drawings/rld-tlv.txt}
+~~~~
+{: #fig-rld-tlv title="RLD Sub-TLV."}
+
+- Sub-type: 1 (RLD).
+- Length: 4 octets.
+- RLD Value: An 8-bit unsigned integer indicating the number of LSEs the node can parse without performance impact. A value of 0 indicates that the node did not provide an RLD value.
+- Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
+
+### NAS_MLD Sub-TLV
+The NAS_MLD Sub-TLV reports the maximum supported NAS sizes for each scope. All three scope values are encoded in a single sub-TLV.
+
+~~~~
+{::include ./drawings/mld-tlv.txt}
+~~~~
+{: #fig-mld-tlv title="NAS_MLD Sub-TLV."}
+
+- Sub-type: 2 (NAS_MLD).
+- Length: 4 octets.
+- NAS_MLD_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported.
+- NAS_MLD_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported.
+- NAS_MLD_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported.
+- Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
+
+### Supported Opcodes Sub-TLV
+The Supported Opcodes Sub-TLV reports the network action opcodes supported by the responding node using a bitmap encoding. The MNA opcode space is 7 bits, supporting 128 opcodes. Each bit in the bitmap corresponds to one opcode value.
+
+~~~~
+{::include ./drawings/opcode-tlv.txt}
+~~~~
+{: #fig-opcode-tlv title="Opcode Sub-TLV."}
+
+- Sub-type: 3 (Supported Opcodes).
+- Length: 16 octets.
+- Supported Opcodes bitmap: A 128-bit bitmap where bit N (counting from bit 0 as the most significant bit of the first octet) corresponds to opcode value N. If bit N is set to 1, the node supports opcode N. If bit N is set to 0, the node does not support opcode N.
+
+This bitmap encoding is compact and fixed-size regardless of the number of supported opcodes. It allows efficient computation of the intersection of supported opcodes across all nodes on a path using bitwise AND operations.
+
+# Processing Rules
+This section defines the processing rules for querying and responding nodes.
+
+## Ingress LER (Querier)
+The ingress LER constructs MPLS echo request messages containing the MNA Capabilities Query TLV.
+In traceroute mode, the ingress LER sends echo requests with TTL values from 1 to the path length. This allows discovery of MNA capabilities at each hop.
+Traceroute mode SHOULD be used when HBH-scoped network actions are planned, as the ingress LER needs the capabilities of every node to correctly place NAS copies within each node's RLD.
+In ping mode, a single echo request with TTL set to 255 is sent.
+This is sufficient when only I2E-scoped network actions are planned, as only the egress node's capabilities are needed.
+After collecting responses, the ingress LER computes path-wide constraints as described in Section 3.
+The ingress LER MUST ensure the following when constructing MPLS stacks with MNA:
+
+1.  A select-scoped NAS pushed for a specific node MUST NOT exceed that node's NAS_MLD_Select.
+2. An HBH-scoped NAS MUST NOT exceed the minimum NAS_MLD_HBH across all nodes on the path.
+3. An I2E-scoped NAS MUST NOT exceed the egress node's NAS_MLD_I2E.
+4. All NAS intended for a node MUST be within that node's RLD.
+
+## Responding Node
+A node that supports MNA and receives an MPLS echo request containing the MNA Capabilities Query TLV MUST respond with an MPLS echo reply containing the MNA Capabilities Response TLV.
+The responding node MUST include sub-TLVs corresponding to the flags set in the query.
+If the QUERY_RLD flag is set, the RLD Sub-TLV MUST be included.
+If the QUERY_NAS_MLD flag is set, the NAS_MLD Sub-TLV MUST be included.
+If the QUERY_OPCODES flag is set, the Supported Opcodes Sub-TLV MUST be included.
+If no Query Flags are set (all zero), the responding node SHOULD include all available sub-TLVs.
+The reported capabilities are those of the node as a whole.
+If capabilities vary per interface, the node SHOULD report the capabilities applicable to the interface on which the echo request was received.
+
+## MNA-incapable Nodes
+A node that does not support MNA will not recognize the MNA Capabilities Query TLV.
+According to RFC 8029, the handling depends on the TLV type value range.
+The TLV type for the MNA Capabilities Query TLV SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
+This allows the ingress LER to detect nodes that do not support MNA.
+
+# Example
+Consider an SR-MPLS path with three LSRs: R1, R2 (transit), and R3 (egress). The ingress LER R0 wants to push an HBH-scoped NAS and a select-scoped NAS for R2 along this path.
+R0 sends MPLS echo requests in traceroute mode with all Query Flags set. The responses are:
+
+| Node | RLD | MLD_Select | MLD_HBH | MLD_I2E         |
+| ---- | --- | ---------- | ------- | --------------- |
+| R1   | 20  | 9          | 9       | 0 (not egress ) |
+| R2   | 51  | 9          | 3       | 0 (not egress ) |
+| R3   | 35  | 9          | 9       | 9               |
+{: #table_example_ping title="Example MNA Capabilities Responses."}
+
+From these responses, R0 determines:
+
+- Path-wide RLD: min(20, 51, 35) = 20 LSEs
+- Path-wide NAS_MLD_HBH: min(9, 3, 9) = 3 LSEs
+- NAS_MLD_Select for R2: 9 LSEs
+- NAS_MLD_I2E: 9 LSEs (from R3)
+
+R0 can now construct a label stack ensuring that all NAS are within each node's RLD and do not exceed the per-scope NAS_MLD constraints.
 
 # Security Considerations
-
-The security issues discussed in {{?I-D.ietf-mpls-mna-hdr}}, {{?rfc8476}}, and {{?rfc8491}} apply to this document.
+The security considerations described in {{?rfc8029}} apply to this document.
+The MNA capability discovery mechanism reveals information about node capabilities, which could potentially be exploited by an attacker to craft targeted attacks against nodes with limited MNA support.
+Nodes that support MNA capability discovery SHOULD support configuration options to enable or disable the MNA Capabilities Query/Response functionality.
+By default, MNA capability discovery SHOULD be enabled only within an MNA-capable MPLS domain.
+The security considerations from {{?I-D.ietf-mpls-mna-hdr}} also apply.
 
 # IANA Considerations
+This section requests new TLVs and sub-TLVs.
 
-This document requests the allocation of following codepoints in the "IGP MSD-Types" registry.
+## TLV Assignments
+IANA is requested to assign two new TLVs from the "TLV" registry in the "Multiprotocol Label Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group.
+The TLV values SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
 
-| Value | Name                     | Data Plane | Reference     |
-| ----- | ------------------------ | ---------- |
-| TBA1  | MLD of select-scoped NAS | MPLS       | This document |
-| TBA2  | MLD of I2E-scoped NAS    | MPLS       | This document |
-| TBA3  | MLD of HBH-scoped NAS    | MPLS       | This document |
-{: #table_iana title="IGP Signaling Sub-TLV allocation."}
+| Value | TLV Name                  | Reference     | Sub-TLV Registry |
+| ----- | ------------------------- | ------------- | ---------------- |
+| TBA1  | MNA Capabilities Query    | This document | No               |
+| TBA2  | MNA Capabilities Response | This document | See x.x          |
+{: #table_iana title="New TLVs."}
+
+## New Sub-TLV Registry
+IANA is requested to create a new sub-TLV registry for TLV TBA2 with the following initial entries:
+
+| Sub-Type | Sub-TLV Name      | Reference     |
+| -------- | ----------------- | ------------- |
+| 0        | Reserved          | This document |
+| 1        | RLD               | This document |
+| 2        | NAS_MLD           | This document |
+| 3        | Supported Opcodes | This document |
+{: #table_iana2 title="Sub-TLV Registry for TLV TBA2."}
+
 
 --- back

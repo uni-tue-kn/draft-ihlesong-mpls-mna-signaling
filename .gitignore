@@ -17,6 +17,7 @@ report.xml
 *.swp
 .tags
 *.txt
+!drawings/*.txt
 *.upload
 /.venv/
 /versioned/
