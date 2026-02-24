@@ -297,13 +297,7 @@ According to RFC 8029, the handling depends on the TLV type value range.
 The TLV type for the MNA Capabilities Query TLV SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
 This allows the ingress LER to detect nodes that do not support MNA.
 
-If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, it MUST reply with the following Return Code for MPLS echo reply messages:
-
-| Value | Meaning           | Reference     |
-| ----- | ----------------- | ------------- |
-| TBA3  | MNA not supported | This document |
-{: #table_return_code title="New return code."}
-
+If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, it MUST reply with the Return Code TBA3 for MPLS echo reply messages.
 
 # Example
 Consider an SR-MPLS path with three LSRs: R1, R2 (transit), and R3 (egress). The ingress LER R0 wants to push an HBH-scoped NAS and a select-scoped NAS for R2 along this path.
@@ -356,5 +350,14 @@ IANA is requested to create a new sub-TLV registry for TLV TBA2 with the followi
 | 3        | Supported Opcodes | This document |
 {: #table_iana2 title="Sub-TLV Registry for TLV TBA2."}
 
+## Return Code Assignment
+IANA is requested to assign a new Return Code from the "Return Code" registry in the "Multiprotocol Label
+Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group as follows
+
+| Value | Meaning           | Reference     |
+| ----- | ----------------- | ------------- |
+| TBA3  | MNA not supported | This document |
+{: #table_return_code title="New return code."}
 
 --- back
+
