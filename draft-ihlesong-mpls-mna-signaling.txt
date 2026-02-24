@@ -103,6 +103,7 @@ Table of Contents
    7.  IANA Considerations
      7.1.  TLV Assignments
      7.2.  New Sub-TLV Registry
+     7.3.  Return Code Assignment
    8.  References
      8.1.  Normative References
      8.2.  Informative References
@@ -598,16 +599,8 @@ Table of Contents
    detect nodes that do not support MNA.
 
    If a node does not support MNA, but recognizes the MNA Capabilities
-   Query TLV, it MUST reply with the following Return Code for MPLS echo
-   reply messages:
-
-               +=======+===================+===============+
-               | Value | Meaning           | Reference     |
-               +=======+===================+===============+
-               | TBA3  | MNA not supported | This document |
-               +-------+-------------------+---------------+
-
-                         Table 3: New return code.
+   Query TLV, it MUST reply with the Return Code TBA3 for MPLS echo
+   reply messages.
 
 5.  Example
 
@@ -627,7 +620,7 @@ Table of Contents
           | R3   | 35  | 9          | 9       | 9               |
           +------+-----+------------+---------+-----------------+
 
-                Table 4: Example MNA Capabilities Responses.
+                Table 3: Example MNA Capabilities Responses.
 
    From these responses, R0 determines:
 
@@ -673,11 +666,11 @@ Table of Contents
    | TBA1  | MNA Capabilities Query | This          | No               |
    |       |                        | document      |                  |
    +-------+------------------------+---------------+------------------+
-   | TBA2  | MNA Capabilities       | This          | See Table 6      |
+   | TBA2  | MNA Capabilities       | This          | See Table 5      |
    |       | Response               | document      |                  |
    +-------+------------------------+---------------+------------------+
 
-                             Table 5: New TLVs.
+                             Table 4: New TLVs.
 
 7.2.  New Sub-TLV Registry
 
@@ -696,7 +689,21 @@ Table of Contents
              | 3        | Supported Opcodes | This document |
              +----------+-------------------+---------------+
 
-                 Table 6: Sub-TLV Registry for TLV TBA2.
+                 Table 5: Sub-TLV Registry for TLV TBA2.
+
+7.3.  Return Code Assignment
+
+   IANA is requested to assign a new Return Code from the "Return Code"
+   registry in the "Multiprotocol Label Switching (MPLS) Label Switched
+   Paths (LSPs) Ping Parameters" registry group as follows
+
+               +=======+===================+===============+
+               | Value | Meaning           | Reference     |
+               +=======+===================+===============+
+               | TBA3  | MNA not supported | This document |
+               +-------+-------------------+---------------+
+
+                         Table 6: New return code.
 
 8.  References
 
