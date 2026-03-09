@@ -4,16 +4,16 @@
 
 This is the working area for the individual Internet-Draft, "Signaling MNA Capabilities Using IGP".
 
-* [Editor's Copy](https://uni-tue-kn.github.io/draft-ihle-song-mpls-mna-signaling/#go.draft-ihle-song-mpls-mna-signaling.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ihle-song-mpls-mna-signaling)
-* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-ihle-song-mpls-mna-signaling)
-* [Compare Editor's Copy to Individual Draft](https://uni-tue-kn.github.io/draft-ihle-song-mpls-mna-signaling/#go.draft-ihle-song-mpls-mna-signaling.diff)
+* [Editor's Copy](https://uni-tue-kn.github.io/draft-ihlesong-mpls-mna-signaling/#go.draft-ihlesong-mpls-mna-signaling.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ihlesong-mpls-mna-signaling)
+* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-ihlesong-mpls-mna-signaling)
+* [Compare Editor's Copy to Individual Draft](https://uni-tue-kn.github.io/draft-ihlesong-mpls-mna-signaling/#go.draft-ihlesong-mpls-mna-signaling.diff)
 
 
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/uni-tue-kn/draft-ihle-song-mpls-mna-signaling/blob/main/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/uni-tue-kn/draft-ihlesong-mpls-mna-signaling/blob/main/CONTRIBUTING.md).
 
 Contributions can be made by creating pull requests.
 The GitHub interface supports creating pull requests using the Edit (✏) button.
