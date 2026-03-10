@@ -68,7 +68,7 @@ informative:
 
 --- abstract
 
-This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (NAS_MLD), and supported network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions.
+This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (MLD_NAS), and supported network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions.
 
 --- middle
 
@@ -77,16 +77,17 @@ The MPLS Network Actions (MNA) framework {{?I-D.ietf-mpls-mna-hdr}} provides a g
 Network actions are encoded in Network Action Sub-stacks (NAS) that are placed within (ISD) or follow after (PSD) the MPLS label stack.
 The MNA header encoding is defined in {{?I-D.ietf-mpls-mna-hdr}}.
 To correctly construct MPLS label stacks containing network actions, the ingress LER needs to know the MNA capabilities of each node along the path.
-For Post-Stack MNA, the ingress LER additionally needs to discover whether nodes support Post-Stack MPLS Headers and what Post-Stack network actions they can process, as required by Section 5.3 of {{?I-D.ietf-mpls-ps-mna-hdr}}.
+For Post-Stack MNA, the ingress LER additionally needs to discover whether nodes support Post-Stack MPLS Headers and what Post-Stack network actions they can process, as required by Section 5.3 of {{?I-D.ietf-mpls-mna-ps-hdr}}.
 These capabilities include:
 
 1. In-Stack MNA capabilities:
    - The Readable Label Depth (RLD): the number of Label Stack Entries (LSEs) a node can parse without performance impact.
-   - The NAS Maximum Label Depth (NAS_MLD): the maximum supported NAS size for each scope (select, HBH, I2E).
-   - The supported network action opcodes.
+   - The NAS Maximum Label Depth (MLD_NAS): the maximum supported NAS size for each scope (select, HBH, I2E).
+   - The supported In-Stack network action opcodes.
 2. Post-Stack MNA capabilities:
-   - Whether the node supports Post-Stack MNA processing as defined in {{?I-D.ietf-mpls-ps-mna-hdr}},
-   - The maximum Post-Stack MPLS Header size, and
+   - Whether the node supports Post-Stack MNA processing as defined in {{?I-D.ietf-mpls-mna-ps-hdr}},
+   - The maximum Post-Stack MPLS Header (PSMH) size (MLD_PSMH),
+   - The RLD including the PSMH (RLD_PSMH)
    - The supported Post-Stack network action opcodes.
 
 This document defines new TLVs for the MPLS echo request/reply messages {{rfc8029}} to query and report MNA capabilities. The mechanism supports both "ping" mode (querying only the egress node) and "traceroute" mode (querying all nodes along the path).
@@ -102,11 +103,11 @@ This document makes use of the terms defined in {{?I-D.ietf-mpls-mna-hdr}} and i
 | ------------ | ------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------- |
 | NAS          | Network Action Sub-stack | A stack of related LSEs in the MPLS stack containing network actions and ancillary data. | {{?rfc9789}}                  |
 | RLD          | Readable Label Depth     | The number of LSEs a node can parse.                                                     | {{?I-D.ietf-mpls-mna-hdr}}    |
-| NAS_MLD      | NAS Maximum Label Depth  | The maximum number of LSEs in a NAS that a node can process, defined per scope.          | This document                 |
-| PSMH         | Post-Stack MPLS Header   | The header after the BOS carrying post-stack network actions and ancillary data.         | {{?I-D.ietf-mpls-ps-mna-hdr}} |
-| PSD          | Post-Stack Data          | Network actions and data encoded after the MPLS label stack.                             | {{?I-D.ietf-mpls-ps-mna-hdr}} |
+| MLD_NAS      | NAS Maximum Label Depth  | The maximum number of LSEs in a NAS that a node can process, defined per scope.          | This document                 |
+| PSMH         | Post-Stack MPLS Header   | The header after the BOS carrying post-stack network actions and ancillary data.         | {{?I-D.ietf-mpls-mna-ps-hdr}} |
+| PSD          | Post-Stack Data          | Network actions and data encoded after the MPLS label stack.                             | {{?I-D.ietf-mpls-mna-ps-hdr}} |
 | ISD          | In-Stack Data            | Network actions and data encoded within the MPLS label stack.                            | {{?I-D.ietf-mpls-mna-hdr}}    |
-| PSMH_MLD     | NAS Maximum Label Depth  | The maximum PSMH size a node can process, in 4-octet units.                              | This document                 |
+| MLD_PSMH     | NAS Maximum Label Depth  | The maximum PSMH size a node can process, in 4-octet units.                              | This document                 |
 | RLD_PSMH     | RLD including PSMH       | The total parseable depth including label stack and PSMH, in 4-octet units.              | This document                 |
 {: #table_abbrev title="Abbreviations."}
 
@@ -135,8 +136,8 @@ An RLD of 8 is required in this example to read the entire MPLS stack.
 ~~~~
 {: #fig-rld_example title="Example MPLS stack of 8 MPLS LSEs illustrating the concept of RLD."}
 
-### Maximum NAS Sizes (NAS_MLD)
-This section gives a motivation for signaling maximum NAS sizes and then introduces the NAS Maximum Label Depth (NAS_MLD).
+### Maximum NAS Sizes (MLD_NAS)
+This section gives a motivation for signaling maximum NAS sizes and then introduces the NAS Maximum Label Depth (MLD_NAS).
 
 #### Motivation
 A NAS in the MNA header encoding is at least 2 LSEs and at most 17 LSEs large {{?I-D.ietf-mpls-mna-hdr}}.
@@ -151,21 +152,21 @@ This way, the allocated resources for NAS can be reduced if smaller maximum NAS 
 More resources are available for other purposes, and hardware with a low RLD can be made MNA-capable {{IhMe25}}.
 
 #### NAS Maximum Label Depth
-The maximum supported number of LSEs in a NAS that an LSR can process is referred to as NAS Maximum Label Depth (NAS_MLD) in this document.
-For each scope in MNA, a separate parameter for the NAS_MLD exists, called NAS_MLD_Select, NAS_MLD_HBH, and NAS_MLD_I2E.
+The maximum supported number of LSEs in a NAS that an LSR can process is referred to as NAS Maximum Label Depth (MLD_NAS) in this document.
+For each scope in MNA, a separate parameter for the MLD_NAS exists, called MLD_NAS_Select, MLD_NAS_HBH, and MLD_NAS_I2E.
 
-An LSR SHOULD signal the maximum-supported size of a NAS for each scope, i.e., the parameters NAS_MLD_Select, NAS_MLD_HBH, and NAS_MLD_I2E.
+An LSR SHOULD signal the maximum-supported size of a NAS for each scope, i.e., the parameters MLD_NAS_Select, MLD_NAS_HBH, and MLD_NAS_I2E.
 Those parameters include the Format A, B, C, and D LSEs from {{?I-D.ietf-mpls-mna-hdr}} in a NAS.
 
 Based on the signaled parameters, the ingress LER MUST ensure the following when pushing the MPLS stack and NAS on a packet:
 
-- The ingress LER MUST NOT push a select-scoped NAS that is larger than the signaled NAS_MLD_Select value of the node that will process the select-scoped NAS.
-- The ingress LER MUST NOT push an HBH-scoped NAS that is larger than the minimum of all signaled NAS_MLD_HBH values of all nodes on the path.
-- The ingress LER MUST NOT push an I2E-scoped NAS that is larger than the signaled NAS_MLD_I2E value of the egress node.
+- The ingress LER MUST NOT push a select-scoped NAS that is larger than the signaled MLD_NAS_Select value of the node that will process the select-scoped NAS.
+- The ingress LER MUST NOT push an HBH-scoped NAS that is larger than the minimum of all signaled MLD_NAS_HBH values of all nodes on the path.
+- The ingress LER MUST NOT push an I2E-scoped NAS that is larger than the signaled MLD_NAS_I2E value of the egress node.
 
 #### Example
 
-{{fig-nas_sizes_example}} illustrates the different NAS_MLD sizes in an MPLS stack that are signaled to the LSR.
+{{fig-nas_sizes_example}} illustrates the different MLD_NAS sizes in an MPLS stack that are signaled to the LSR.
 In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-scoped NAS of 7 LSEs, and an I2E-scoped NAS of 4 LSEs.
 
 ~~~~
@@ -174,37 +175,37 @@ In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-
 {: #fig-nas_sizes_example title="Example MPLS stack illustrating the different NAS sizes."}
 
 
-### Supported Network Action Opcodes
+### Supported In-Stack Network Action Opcodes
 An LSR MUST signal the network action opcodes it supports.
 If a network action opcode is not signaled, it is assumed that this opcode is not supported by the node.
 
 ## Post-Stack MNA Capabilities
-The Post-Stack MNA solution {{?I-D.ietf-mpls-ps-mna-hdr}} allows network actions and their ancillary data to be encoded after the bottom of the MPLS label stack in a Post-Stack MPLS Header (PSMH).
-Section 5.3 of {{?I-D.ietf-mpls-ps-mna-hdr}} requires that each participating node signals its Post-Stack capabilities to the encapsulating node.
+The Post-Stack MNA solution {{?I-D.ietf-mpls-mna-ps-hdr}} allows network actions and their ancillary data to be encoded after the bottom of the MPLS label stack in a Post-Stack MPLS Header (PSMH).
+Section 5.3 of {{?I-D.ietf-mpls-mna-ps-hdr}} requires that each participating node signals its Post-Stack capabilities to the encapsulating node.
 This section defines the parameters for that purpose.
 
 ### Post-Stack MNA Support
 A node MAY support Post-Stack MNA processing.
-The encapsulating node MUST NOT add a Post-Stack MPLS Header to a packet if the decapsulating node does not support Post-Stack MNA processing {{?I-D.ietf-mpls-ps-mna-hdr}}.
+The encapsulating node MUST NOT add a Post-Stack MPLS Header to a packet if the decapsulating node does not support Post-Stack MNA processing {{?I-D.ietf-mpls-mna-ps-hdr}}.
 Therefore, the ingress LER needs to discover whether each node on the path supports Post-Stack MNA.
 
-### Maximum Post-Stack MPLS Header Size (PSMH_MLD)
-The PSMH-LEN field in the Post-Stack MPLS Header indicates the total length of the Post-Stack MPLS Header in 4-octet units, excluding the 4-byte PSMH type header {{?I-D.ietf-mpls-ps-mna-hdr}}.
+### Maximum Post-Stack MPLS Header Size (MLD_PSMH)
+The PSMH-LEN field in the Post-Stack MPLS Header indicates the total length of the Post-Stack MPLS Header in 4-octet units, excluding the 4-byte PSMH type header {{?I-D.ietf-mpls-mna-ps-hdr}}.
 Hardware implementations may have limits on the maximum PSMH size they can process.
-The maximum supported PSMH length is referred to as PSMH_MLD in this document, analogue to the scope-specific values of NAS_MLD for ISD.
+The maximum supported PSMH length is referred to as MLD_PSMH in this document, analogue to the scope-specific values of MLD_NAS for ISD.
 It is expressed in 4-octet units, consistent with the PSMH-LEN field encoding.
-An LSR SHOULD signal its PSMH_MLD to the ingress LER.
+An LSR SHOULD signal its MLD_PSMH to the ingress LER.
 Based on the signaled parameters, the ingress LER MUST ensure the following:
 
-- The ingress LER MUST NOT add a PSMH with a PSMH-LEN exceeding the PSMH_MLD of any node that will process that PSMH.
+- The ingress LER MUST NOT add a PSMH with a PSMH-LEN exceeding the MLD_PSMH of any node that will process that PSMH.
 
 ### Readable Label Depth Including Post-Stack MPLS Header (RLD_PSMH)
-Section 5.3 of {{?I-D.ietf-mpls-ps-mna-hdr}} defines the "Readable Label Depth including Post-Stack MPLS Header" as the total depth a node can parse, including both the MPLS label stack and the PSMH.
+Section 5.3 of {{?I-D.ietf-mpls-mna-ps-hdr}} defines the "Readable Label Depth including Post-Stack MPLS Header" as the total depth a node can parse, including both the MPLS label stack and the PSMH.
 This parameter is referred to as RLD_PSMH in this document and is expressed in 4-octet units.
 When the RLD_PSMH is signaled, the ingress LER MUST ensure that the combined size of the MPLS label stack and any PSMH intended for a node does not exceed that node's RLD_PSMH.
 
 ### Supported Post-Stack Network Action Opcodes
-The Post-Stack network action opcode space (MNA-PS-OP) is 7 bits, supporting 128 opcodes {{?I-D.ietf-mpls-ps-mna-hdr}}.
+The Post-Stack network action opcode space (MNA-PS-OP) is 7 bits, supporting 128 opcodes {{?I-D.ietf-mpls-mna-ps-hdr}}.
 A node MUST signal the Post-Stack network action opcodes it supports.
 The Post-Stack opcode space is separate from the In-Stack opcode space; a node may support an opcode in-stack, post-stack, or both.
 
@@ -216,9 +217,9 @@ The MNA capability discovery mechanism operates as follows:
 3. The ingress LER aggregates the received responses to determine path-wide MNA constraints. Specifically:
 
      - The path-wide RLD is the minimum RLD reported by any node on the path.
-     - The path-wide NAS_MLD_HBH is the minimum NAS_MLD_HBH reported by any node.
-     - The NAS_MLD_Select for a specific node is the value reported by that node.
-     - The NAS_MLD_I2E is the value reported by the egress node.
+     - The path-wide MLD_NAS_HBH is the minimum MLD_NAS_HBH reported by any node.
+     - The MLD_NAS_Select for a specific node is the value reported by that node.
+     - The MLD_NAS_I2E is the value reported by the egress node.
      - The path-wide supported opcodes for HBH-scoped NAS is the intersection of opcodes supported by all nodes.
 
 The ingress LER SHOULD perform MNA capability discovery before pushing MNA-enabled label stacks onto a path. The ingress LER SHOULD re-query capabilities when the path changes, e.g., due to IGP reconvergence or Fast Reroute activation.
@@ -241,9 +242,9 @@ The fields are defined as follows:
 | Bit | Name              | Description                                                                 |
 | --- | ----------------- | --------------------------------------------------------------------------- |
 | 0   | QUERY_RLD         | Query the Readable Label Depth                                              |
-| 1   | QUERY_NAS_MLD     | Query NAS Maximum Label Depth (scopes)                                      |
+| 1   | QUERY_MLD_NAS     | Query NAS Maximum Label Depth (scopes)                                      |
 | 2   | QUERY_ISD_OPCODES | Query supported network action opcodes for ISD                              |
-| 3   | QUERY_PS_MNA      | Query Post-Stack MNA capabilities (support, PSMH_MLD, RLD_PSMH, PS opcodes) |
+| 3   | QUERY_PS_MNA      | Query Post-Stack MNA capabilities (support, MLD_PSMH, RLD_PSMH, PS opcodes) |
 | 4-7 | Reserved          | MUST be set to zero on transmit, ignored on receipt                         |
 {: #query-flags title="Query Flags."}
 
@@ -279,19 +280,19 @@ The RLD Sub-TLV reports the Readable Label Depth of the responding node.
 - RLD Value: An 8-bit unsigned integer indicating the number of LSEs the node can parse without performance impact. A value of 0 indicates that the node did not provide an RLD value.
 - Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
 
-### NAS_MLD Sub-TLV
-The NAS_MLD Sub-TLV reports the maximum supported NAS sizes for each scope. All three scope values are encoded in a single sub-TLV.
+### MLD_NAS Sub-TLV
+The MLD_NAS Sub-TLV reports the maximum supported NAS sizes for each scope. All three scope values are encoded in a single sub-TLV.
 
 ~~~~
 {::include ./drawings/mld-tlv.txt}
 ~~~~
-{: #fig-mld-tlv title="NAS_MLD Sub-TLV."}
+{: #fig-mld-tlv title="MLD_NAS Sub-TLV."}
 
-- Sub-type: 2 (NAS_MLD).
+- Sub-type: 2 (MLD_NAS).
 - Length: 4 octets.
-- NAS_MLD_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported.
-- NAS_MLD_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported.
-- NAS_MLD_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported.
+- MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported.
+- MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported.
+- MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported.
 - Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
 
 ### Supported In-Stack Opcodes Sub-TLV {#isd-opcodes}
@@ -307,8 +308,6 @@ The Supported In-Stack Opcodes Sub-TLV reports the network action opcodes suppor
 - Length: 16 octets.
 - Supported ISD Opcodes bitmap: A 128-bit bitmap where bit N (counting from bit 0 as the most significant bit of the first octet) corresponds to opcode value N. If bit N is set to 1, the node supports opcode N. If bit N is set to 0, the node does not support opcode N.
 
-This bitmap encoding is compact and fixed-size regardless of the number of supported opcodes. It allows efficient computation of the intersection of supported opcodes across all nodes on a path using bitwise AND operations.
-
 ### Post-Stack MNA Capabilities Sub-TLV
 The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-Stack MNA processing, the maximum PSMH size, and the RLD including PSMH.
 
@@ -320,9 +319,9 @@ The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-S
 - Sub-type: 4 (Post-Stack MNA Capabilities).
 - Length: 4 octets.
 - PS Flags: An 8-bit field.
-  - Bit 0: PS_SUPPORTED. If set to 1, the node supports Post-Stack MNA processing as defined in {{?I-D.ietf-mpls-ps-mna-hdr}}. If set to 0, Post-Stack MNA is not supported and the remaining fields in this sub-TLV SHOULD be ignored.
+  - Bit 0: PS_SUPPORTED. If set to 1, the node supports Post-Stack MNA processing as defined in {{?I-D.ietf-mpls-mna-ps-hdr}}. If set to 0, Post-Stack MNA is not supported and the remaining fields in this sub-TLV SHOULD be ignored.
   - Bits 1-7: Reserved. MUST be set to zero on transmit and MUST be ignored on receipt.
-- PSMH_MLD: An 8-bit unsigned integer indicating the maximum Post-Stack MPLS Header length (in 4-octet units, excluding the PSMH type header) that the node can process. A value of 0 indicates that the node did not provide this value. The valid range corresponds to the 8-bit PSMH-LEN field defined in {{?I-D.ietf-mpls-ps-mna-hdr}}.
+- MLD_PSMH: An 8-bit unsigned integer indicating the maximum Post-Stack MPLS Header length (in 4-octet units, excluding the PSMH type header) that the node can process. A value of 0 indicates that the node did not provide this value. The valid range corresponds to the 8-bit PSMH-LEN field defined in {{?I-D.ietf-mpls-mna-ps-hdr}}.
 - RLD_PSMH: An 8-bit unsigned integer indicating the Readable Label Depth including the Post-Stack MPLS Header, in 4-octet units. A value of 0 indicates that the node did not provide this value.
 - Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
 
@@ -344,22 +343,22 @@ This is sufficient when only I2E-scoped network actions are planned, as only the
 After collecting responses, the ingress LER computes path-wide constraints as described in Section 3.
 The ingress LER MUST ensure the following when constructing MPLS stacks with MNA:
 
-1.  A select-scoped NAS pushed for a specific node MUST NOT exceed that node's NAS_MLD_Select.
-2. An HBH-scoped NAS MUST NOT exceed the minimum NAS_MLD_HBH across all nodes on the path.
-3. An I2E-scoped NAS MUST NOT exceed the egress node's NAS_MLD_I2E.
+1.  A select-scoped NAS pushed for a specific node MUST NOT exceed that node's MLD_NAS_Select.
+2. An HBH-scoped NAS MUST NOT exceed the minimum MLD_NAS_HBH across all nodes on the path.
+3. An I2E-scoped NAS MUST NOT exceed the egress node's MLD_NAS_I2E.
 4. All NAS intended for a node MUST be within that node's RLD.
 
 When Post-Stack MNA is used, the ingress LER MUST additionally ensure:
 
 5. The ingress LER MUST NOT add a Post-Stack MPLS Header to a packet if the decapsulating node does not have the PS_SUPPORTED flag set.
-6. The PSMH-LEN of any Post-Stack MPLS Header MUST NOT exceed the PSMH_MLD of any node that will process the PSMH.
+6. The PSMH-LEN of any Post-Stack MPLS Header MUST NOT exceed the MLD_PSMH of any node that will process the PSMH.
 7. The combined size of the MPLS label stack and any PSMH intended for a node MUST NOT exceed that node's RLD_PSMH.
 
 ## Responding Node
 A node that supports MNA and receives an MPLS echo request containing the MNA Capabilities Query TLV MUST respond with an MPLS echo reply containing the MNA Capabilities Response TLV.
 The responding node MUST include sub-TLVs corresponding to the flags set in the query.
 If the QUERY_RLD flag is set, the RLD Sub-TLV MUST be included.
-If the QUERY_NAS_MLD flag is set, the NAS_MLD Sub-TLV MUST be included.
+If the QUERY_MLD_NAS flag is set, the MLD_NAS Sub-TLV MUST be included.
 If the QUERY_ISD_OPCODES flag is set, the Supported Opcodes Sub-TLV MUST be included.
 If no Query Flags are set (all zero), the responding node SHOULD include all available sub-TLVs.
 The reported capabilities are those of the node as a whole.
@@ -378,26 +377,29 @@ If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, i
 
 # Example
 Consider an SR-MPLS path with three LSRs: R1, R2 (transit), and R3 (egress). The ingress LER R0 wants to push an HBH-scoped NAS and a select-scoped NAS for R2 along this path.
+
 R0 sends MPLS echo requests in traceroute mode with all Query Flags set. The responses are:
 
-| Node | RLD | MLD_Select | MLD_HBH | MLD_I2E         | PS_Supported | PSMH_MLD |
-| ---- | --- | ---------- | ------- | --------------- | ------------ | -------- |
-| R1   | 20  | 9          | 9       | 0 (not egress ) | Yes          | 16       |
-| R2   | 51  | 9          | 3       | 0 (not egress ) | Yes          | 8        |
-| R3   | 35  | 9          | 9       | 9               | Yes          | 16       |
+| Node | RLD | MLD_Select | MLD_HBH | MLD_I2E        | PS_Supported | MLD_PSMH | RLD_PSMH |
+| ---- | --- | ---------- | ------- | -------------- | ------------ | -------- | -------- |
+| R1   | 20  | 9          | 9       | 0 (not egress) | Yes          | 16       | 36       |
+| R2   | 51  | 9          | 3       | 0 (not egress) | Yes          | 8        | 59       |
+| R3   | 35  | 9          | 9       | 9              | Yes          | 16       | 51       |
 {: #table_example_ping title="Example MNA Capabilities Responses."}
 
 From these responses, R0 determines:
 
 - Path-wide RLD: min(20, 51, 35) = 20 LSEs
-- Path-wide NAS_MLD_HBH: min(9, 3, 9) = 3 LSEs
-- NAS_MLD_Select for R2: 9 LSEs
-- NAS_MLD_I2E: 9 LSEs (from R3)
+- Path-wide MLD_NAS_HBH: min(9, 3, 9) = 3 LSEs
+- MLD_NAS_Select for R2: 9 LSEs
+- MLD_NAS_I2E: 9 LSEs (from R3)
 - Post-Stack MNA is supported on all nodes (PS_SUPPORTED set at R1, R2, R3).
-- Path-wide PSMH_MLD for HBH-scoped PSMH: min(16, 8, 16) = 8 (in 4-octet units).
-- PSMH_MLD for I2E-scoped PSMH: 16 (from R3).
+- Path-wide MLD_PSMH for HBH-scoped PSMH: min(16, 8, 16) = 8 (in 4-octet units).
+- MLD_PSMH for I2E-scoped PSMH: 16 (from R3).
+- Path-wide RLD_PSMH: min(36, 59, 51) = 36 (in 4-octet units).
 
-R0 can now construct a label stack ensuring that all NAS are within each node's RLD and do not exceed the per-scope NAS_MLD constraints.
+R0 can now construct a label stack ensuring that all NAS are within each node's RLD and do not exceed the per-scope MLD_NAS constraints. For Post-Stack MNA, R0 ensures that the PSMH does not exceed the path-wide MLD_PSMH and that the combined label stack and PSMH do not exceed any node's RLD_PSMH.
+
 
 # Security Considerations
 The security considerations described in {{?rfc8029}} apply to this document.
@@ -426,7 +428,7 @@ IANA is requested to create a new sub-TLV registry for TLV TBA2 with the followi
 | -------- | --------------------------- | ------------- |
 | 0        | Reserved                    | This document |
 | 1        | RLD                         | This document |
-| 2        | NAS_MLD                     | This document |
+| 2        | MLD_NAS                     | This document |
 | 3        | Supported ISD Opcodes       | This document |
 | 4        | Post-Stack MNA Capabilities | This document |
 | 5        | Supported PSD Opcodes       | This document |
