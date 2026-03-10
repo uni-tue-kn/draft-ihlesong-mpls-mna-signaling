@@ -1,0 +1,2436 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Signaling MNA Capabilities Using LSP Ping</title>
+<meta content="Fabian Ihle" name="author">
+<meta content="Xueyan Song" name="author">
+<meta content="Michael Menth" name="author">
+<meta content="
+       This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (MLD_NAS), and supported network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions. 
+    " name="description">
+<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="signaling" name="keyword">
+<meta content="mpls" name="keyword">
+<meta content="mna" name="keyword">
+<meta content="draft-ihlesong-mpls-mna-signaling-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.31.0
+    Python 3.12.12
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.0.2
+    platformdirs 4.5.1
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.32.5
+    wcwidth 0.3.0
+-->
+<link href="draft-ihlesong-mpls-mna-signaling.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow, a.pilcrow:focus {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">SIG</td>
+<td class="right">March 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Ihle, et al.</td>
+<td class="center">Expires 11 September 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Multiprotocol Label Switching</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ihlesong-mpls-mna-signaling-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-03-10" class="published">10 March 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-09-11">11 September 2026</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">F. Ihle</div>
+<div class="org">University of Tuebingen</div>
+</div>
+<div class="author">
+      <div class="author-name">X. Song</div>
+<div class="org">ZTE Corporation</div>
+</div>
+<div class="author">
+      <div class="author-name">M. Menth</div>
+<div class="org">University of Tuebingen</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Signaling MNA Capabilities Using LSP Ping</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (MLD_NAS), and supported network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://uni-tue-kn.github.io/draft-ihlesong-mpls-mna-signaling/draft-ihlesong-mpls-mna-signaling.html">https://uni-tue-kn.github.io/draft-ihlesong-mpls-mna-signaling/draft-ihlesong-mpls-mna-signaling.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-ihlesong-mpls-mna-signaling/">https://datatracker.ietf.org/doc/draft-ihlesong-mpls-mna-signaling/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        Multiprotocol Label Switching Working Group mailing list (<span><a href="mailto:mpls@ietf.org">mailto:mpls@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/mpls/">https://mailarchive.ietf.org/arch/browse/mpls/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/mpls/">https://www.ietf.org/mailman/listinfo/mpls/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/uni-tue-kn/draft-ihlesong-mpls-mna-signaling">https://github.com/uni-tue-kn/draft-ihlesong-mpls-mna-signaling</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 11 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1.2.1">
+                    <p id="section-toc.1-1.1.2.1.2.1.1" class="keepWithNext"><a href="#section-1.1.1" class="auto internal xref">1.1.1</a>.  <a href="#name-abbreviations" class="internal xref">Abbreviations</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-definition-of-mna-capabilit" class="internal xref">Definition of MNA Capabilities</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
+                <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-in-stack-mna-capabilities" class="internal xref">In-Stack MNA Capabilities</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.1">
+                    <p id="section-toc.1-1.2.2.1.2.1.1"><a href="#section-2.1.1" class="auto internal xref">2.1.1</a>.  <a href="#name-the-readable-label-depth-rl" class="internal xref">The Readable Label Depth (RLD)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.2">
+                    <p id="section-toc.1-1.2.2.1.2.2.1"><a href="#section-2.1.2" class="auto internal xref">2.1.2</a>.  <a href="#name-maximum-nas-sizes-mld_nas" class="internal xref">Maximum NAS Sizes (MLD_NAS)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.3">
+                    <p id="section-toc.1-1.2.2.1.2.3.1"><a href="#section-2.1.3" class="auto internal xref">2.1.3</a>.  <a href="#name-supported-in-stack-network-" class="internal xref">Supported In-Stack Network Action Opcodes</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2">
+                <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="auto internal xref">2.2</a>.  <a href="#name-post-stack-mna-capabilities" class="internal xref">Post-Stack MNA Capabilities</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.1">
+                    <p id="section-toc.1-1.2.2.2.2.1.1"><a href="#section-2.2.1" class="auto internal xref">2.2.1</a>.  <a href="#name-post-stack-mna-support" class="internal xref">Post-Stack MNA Support</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.2">
+                    <p id="section-toc.1-1.2.2.2.2.2.1"><a href="#section-2.2.2" class="auto internal xref">2.2.2</a>.  <a href="#name-maximum-post-stack-mpls-hea" class="internal xref">Maximum Post-Stack MPLS Header Size (MLD_PSMH)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.3">
+                    <p id="section-toc.1-1.2.2.2.2.3.1"><a href="#section-2.2.3" class="auto internal xref">2.2.3</a>.  <a href="#name-readable-label-depth-includ" class="internal xref">Readable Label Depth Including Post-Stack MPLS Header (RLD_PSMH)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.4">
+                    <p id="section-toc.1-1.2.2.2.2.4.1"><a href="#section-2.2.4" class="auto internal xref">2.2.4</a>.  <a href="#name-supported-post-stack-networ" class="internal xref">Supported Post-Stack Network Action Opcodes</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-lsp-ping-mna-operation-over" class="internal xref">LSP Ping MNA Operation Overview</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-mna-capabilities-query-tlv" class="internal xref">MNA Capabilities Query TLV</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-mna-capabilities-response-t" class="internal xref">MNA Capabilities Response TLV</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.1">
+                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-rld-sub-tlv" class="internal xref">RLD Sub-TLV</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.2">
+                    <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-mld_nas-sub-tlv" class="internal xref">MLD_NAS Sub-TLV</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.3">
+                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-supported-in-stack-opcodes-" class="internal xref">Supported In-Stack Opcodes Sub-TLV</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.4">
+                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-post-stack-mna-capabilities-" class="internal xref">Post-Stack MNA Capabilities Sub-TLV</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.5">
+                    <p id="section-toc.1-1.3.2.2.2.5.1"><a href="#section-3.2.5" class="auto internal xref">3.2.5</a>.  <a href="#name-supported-post-stack-opcode" class="internal xref">Supported Post-Stack Opcodes Sub-TLV</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-processing-rules" class="internal xref">Processing Rules</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-ingress-ler-querier" class="internal xref">Ingress LER (Querier)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-responding-node" class="internal xref">Responding Node</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-mna-incapable-nodes" class="internal xref">MNA-incapable Nodes</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-example-3" class="internal xref">Example</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-tlv-assignments" class="internal xref">TLV Assignments</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-new-sub-tlv-registry" class="internal xref">New Sub-TLV Registry</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-return-code-assignment" class="internal xref">Return Code Assignment</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The MPLS Network Actions (MNA) framework <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span> provides a general mechanism for encoding network actions and their data in the MPLS label stack.
+Network actions are encoded in Network Action Sub-stacks (NAS) that are placed within (ISD) or follow after (PSD) the MPLS label stack.
+The MNA header encoding is defined in <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span>.
+To correctly construct MPLS label stacks containing network actions, the ingress LER needs to know the MNA capabilities of each node along the path.
+For Post-Stack MNA, the ingress LER additionally needs to discover whether nodes support Post-Stack MPLS Headers and what Post-Stack network actions they can process, as required by Section 5.3 of <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.
+These capabilities include:<a href="#section-1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-2">
+<li id="section-1-2.1">
+          <p id="section-1-2.1.1">In-Stack MNA capabilities:<a href="#section-1-2.1.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-2.1.2.1">
+              <p id="section-1-2.1.2.1.1">The Readable Label Depth (RLD): the number of Label Stack Entries (LSEs) a node can parse without performance impact.<a href="#section-1-2.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1-2.1.2.2">
+              <p id="section-1-2.1.2.2.1">The NAS Maximum Label Depth (MLD_NAS): the maximum supported NAS size for each scope (select, HBH, I2E).<a href="#section-1-2.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1-2.1.2.3">
+              <p id="section-1-2.1.2.3.1">The supported In-Stack network action opcodes.<a href="#section-1-2.1.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+        <li id="section-1-2.2">
+          <p id="section-1-2.2.1">Post-Stack MNA capabilities:<a href="#section-1-2.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-2.2.2.1">
+              <p id="section-1-2.2.2.1.1">Whether the node supports Post-Stack MNA processing as defined in <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>,<a href="#section-1-2.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1-2.2.2.2">
+              <p id="section-1-2.2.2.2.1">The maximum Post-Stack MPLS Header (PSMH) size (MLD_PSMH),<a href="#section-1-2.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1-2.2.2.3">
+              <p id="section-1-2.2.2.3.1">The RLD including the PSMH (RLD_PSMH)<a href="#section-1-2.2.2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1-2.2.2.4">
+              <p id="section-1-2.2.2.4.1">The supported Post-Stack network action opcodes.<a href="#section-1-2.2.2.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+      </ol>
+<p id="section-1-3">This document defines new TLVs for the MPLS echo request/reply messages <span>[<a href="#rfc8029" class="cite xref">rfc8029</a>]</span> to query and report MNA capabilities. The mechanism supports both "ping" mode (querying only the egress node) and "traceroute" mode (querying all nodes along the path).<a href="#section-1-3" class="pilcrow">¶</a></p>
+<div id="terminology">
+<section id="section-1.1">
+        <h3 id="name-terminology">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+        </h3>
+<p id="section-1.1-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<div id="abbreviations">
+<section id="section-1.1.1">
+          <h4 id="name-abbreviations">
+<a href="#section-1.1.1" class="section-number selfRef">1.1.1. </a><a href="#name-abbreviations" class="section-name selfRef">Abbreviations</a>
+          </h4>
+<p id="section-1.1.1-1">This document makes use of the terms defined in <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span> and in <span>[<a href="#I-D.ietf-mpls-mna-fwk" class="cite xref">I-D.ietf-mpls-mna-fwk</a>]</span>.<a href="#section-1.1.1-1" class="pilcrow">¶</a></p>
+<span id="name-abbreviations-2"></span><div id="table_abbrev">
+<table class="center" id="table-1">
+            <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-abbreviations-2" class="selfRef">Abbreviations.</a>
+            </caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Abbreviation</th>
+                <th class="text-left" rowspan="1" colspan="1">Name</th>
+                <th class="text-left" rowspan="1" colspan="1">Description</th>
+                <th class="text-left" rowspan="1" colspan="1">Reference</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">NAS</td>
+                <td class="text-left" rowspan="1" colspan="1">Network Action Sub-stack</td>
+                <td class="text-left" rowspan="1" colspan="1">A stack of related LSEs in the MPLS stack containing network actions and ancillary data.</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <span>[<a href="#rfc9789" class="cite xref">rfc9789</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">RLD</td>
+                <td class="text-left" rowspan="1" colspan="1">Readable Label Depth</td>
+                <td class="text-left" rowspan="1" colspan="1">The number of LSEs a node can parse.</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">MLD_NAS</td>
+                <td class="text-left" rowspan="1" colspan="1">NAS Maximum Label Depth</td>
+                <td class="text-left" rowspan="1" colspan="1">The maximum number of LSEs in a NAS that a node can process, defined per scope.</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">PSMH</td>
+                <td class="text-left" rowspan="1" colspan="1">Post-Stack MPLS Header</td>
+                <td class="text-left" rowspan="1" colspan="1">The header after the BOS carrying post-stack network actions and ancillary data.</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">PSD</td>
+                <td class="text-left" rowspan="1" colspan="1">Post-Stack Data</td>
+                <td class="text-left" rowspan="1" colspan="1">Network actions and data encoded after the MPLS label stack.</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">ISD</td>
+                <td class="text-left" rowspan="1" colspan="1">In-Stack Data</td>
+                <td class="text-left" rowspan="1" colspan="1">Network actions and data encoded within the MPLS label stack.</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">MLD_PSMH</td>
+                <td class="text-left" rowspan="1" colspan="1">NAS Maximum Label Depth</td>
+                <td class="text-left" rowspan="1" colspan="1">The maximum PSMH size a node can process, in 4-octet units.</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">RLD_PSMH</td>
+                <td class="text-left" rowspan="1" colspan="1">RLD including PSMH</td>
+                <td class="text-left" rowspan="1" colspan="1">The total parseable depth including label stack and PSMH, in 4-octet units.</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
+              </tr>
+            </tbody>
+          </table>
+</div>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="definition-of-mna-capabilities">
+<section id="section-2">
+      <h2 id="name-definition-of-mna-capabilit">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-definition-of-mna-capabilit" class="section-name selfRef">Definition of MNA Capabilities</a>
+      </h2>
+<p id="section-2-1">This section defines the parameters that an LSR uses to signal its MNA capabilities to the ingress LER.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<div id="in-stack-mna-capabilities">
+<section id="section-2.1">
+        <h3 id="name-in-stack-mna-capabilities">
+<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-in-stack-mna-capabilities" class="section-name selfRef">In-Stack MNA Capabilities</a>
+        </h3>
+<div id="the-readable-label-depth-rld">
+<section id="section-2.1.1">
+          <h4 id="name-the-readable-label-depth-rl">
+<a href="#section-2.1.1" class="section-number selfRef">2.1.1. </a><a href="#name-the-readable-label-depth-rl" class="section-name selfRef">The Readable Label Depth (RLD)</a>
+          </h4>
+<p id="section-2.1.1-1">The Readable Label Depth (RLD) is the number of LSEs an LSR can parse without performance impact <span>[<a href="#I-D.ietf-mpls-mna-fwk" class="cite xref">I-D.ietf-mpls-mna-fwk</a>]</span>.
+An LSR is required to search the MPLS stack for NAS that have to be processed by the LSR.
+To that end, the network actions must be within the RLD of the node.
+For HBH-scoped network actions, the ingress LER that pushes the network actions <span class="bcp14">MUST</span> ensure that the actions are readable at each LSR on the path, i.e., that it is placed within the RLD of each node.<a href="#section-2.1.1-1" class="pilcrow">¶</a></p>
+<div id="example">
+<section id="section-2.1.1.1">
+            <h5 id="name-example">
+<a href="#section-2.1.1.1" class="section-number selfRef">2.1.1.1. </a><a href="#name-example" class="section-name selfRef">Example</a>
+            </h5>
+<p id="section-2.1.1.1-1">An example for the RLD parameter is given in <a href="#fig-rld_example" class="auto internal xref">Figure 1</a>.
+With an RLD of 5, an LSR is capable of reading labels A, B, C, D, and E but not F.
+An RLD of 8 is required in this example to read the entire MPLS stack.<a href="#section-2.1.1.1-1" class="pilcrow">¶</a></p>
+<span id="name-example-mpls-stack-of-8-mpl"></span><div id="fig-rld_example">
+<figure id="figure-1">
+              <div class="alignLeft art-text artwork" id="section-2.1.1.1-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = A                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = B                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = C                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = D                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = E                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = F                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = G                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = H                   | TC  |1|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-example-mpls-stack-of-8-mpl" class="selfRef">Example MPLS stack of 8 MPLS LSEs illustrating the concept of RLD.</a>
+              </figcaption></figure>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="maximum-nas-sizes-mldnas">
+<section id="section-2.1.2">
+          <h4 id="name-maximum-nas-sizes-mld_nas">
+<a href="#section-2.1.2" class="section-number selfRef">2.1.2. </a><a href="#name-maximum-nas-sizes-mld_nas" class="section-name selfRef">Maximum NAS Sizes (MLD_NAS)</a>
+          </h4>
+<p id="section-2.1.2-1">This section gives a motivation for signaling maximum NAS sizes and then introduces the NAS Maximum Label Depth (MLD_NAS).<a href="#section-2.1.2-1" class="pilcrow">¶</a></p>
+<div id="motivation">
+<section id="section-2.1.2.1">
+            <h5 id="name-motivation">
+<a href="#section-2.1.2.1" class="section-number selfRef">2.1.2.1. </a><a href="#name-motivation" class="section-name selfRef">Motivation</a>
+            </h5>
+<p id="section-2.1.2.1-1">A NAS in the MNA header encoding is at least 2 LSEs and at most 17 LSEs large <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span>.
+At an LSR, one or more NAS, e.g., a select-scoped and a hop-by-hop-scoped NAS, are possible.
+With two maximum-sized NAS, an LSR is required to reserve 34 LSEs in hardware to be able to process network actions.
+This consumes hardware resources that may be needed to encode other LSEs, e.g., forwarding labels for SR-MPLS paths, or are not available in less capable devices.<a href="#section-2.1.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1.2.1-2">Many use cases in the MNA framework <span>[<a href="#I-D.ietf-mpls-mna-usecases" class="cite xref">I-D.ietf-mpls-mna-usecases</a>]</span> do not require a maximum-sized NAS of 17 LSEs to encode network actions and their ancillary data.
+Therefore, a NAS can be up to 17 LSEs but nodes can also support smaller maximum NAS.
+By signaling the maximum supported NAS size to the ingress LER, an LSR receiving packets with a larger NAS than supported is avoided.
+This way, the allocated resources for NAS can be reduced if smaller maximum NAS are supported.
+More resources are available for other purposes, and hardware with a low RLD can be made MNA-capable <span>[<a href="#IhMe25" class="cite xref">IhMe25</a>]</span>.<a href="#section-2.1.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="nas-maximum-label-depth">
+<section id="section-2.1.2.2">
+            <h5 id="name-nas-maximum-label-depth">
+<a href="#section-2.1.2.2" class="section-number selfRef">2.1.2.2. </a><a href="#name-nas-maximum-label-depth" class="section-name selfRef">NAS Maximum Label Depth</a>
+            </h5>
+<p id="section-2.1.2.2-1">The maximum supported number of LSEs in a NAS that an LSR can process is referred to as NAS Maximum Label Depth (MLD_NAS) in this document.
+For each scope in MNA, a separate parameter for the MLD_NAS exists, called MLD_NAS_Select, MLD_NAS_HBH, and MLD_NAS_I2E.<a href="#section-2.1.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-2.1.2.2-2">An LSR <span class="bcp14">SHOULD</span> signal the maximum-supported size of a NAS for each scope, i.e., the parameters MLD_NAS_Select, MLD_NAS_HBH, and MLD_NAS_I2E.
+Those parameters include the Format A, B, C, and D LSEs from <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span> in a NAS.<a href="#section-2.1.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-2.1.2.2-3">Based on the signaled parameters, the ingress LER <span class="bcp14">MUST</span> ensure the following when pushing the MPLS stack and NAS on a packet:<a href="#section-2.1.2.2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2.1.2.2-4.1">
+                <p id="section-2.1.2.2-4.1.1">The ingress LER <span class="bcp14">MUST NOT</span> push a select-scoped NAS that is larger than the signaled MLD_NAS_Select value of the node that will process the select-scoped NAS.<a href="#section-2.1.2.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-2.1.2.2-4.2">
+                <p id="section-2.1.2.2-4.2.1">The ingress LER <span class="bcp14">MUST NOT</span> push an HBH-scoped NAS that is larger than the minimum of all signaled MLD_NAS_HBH values of all nodes on the path.<a href="#section-2.1.2.2-4.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-2.1.2.2-4.3">
+                <p id="section-2.1.2.2-4.3.1">The ingress LER <span class="bcp14">MUST NOT</span> push an I2E-scoped NAS that is larger than the signaled MLD_NAS_I2E value of the egress node.<a href="#section-2.1.2.2-4.3.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</section>
+</div>
+<div id="example-1">
+<section id="section-2.1.2.3">
+            <h5 id="name-example-2">
+<a href="#section-2.1.2.3" class="section-number selfRef">2.1.2.3. </a><a href="#name-example-2" class="section-name selfRef">Example</a>
+            </h5>
+<p id="section-2.1.2.3-1"><a href="#fig-nas_sizes_example" class="auto internal xref">Figure 2</a> illustrates the different MLD_NAS sizes in an MPLS stack that are signaled to the LSR.
+In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-scoped NAS of 7 LSEs, and an I2E-scoped NAS of 4 LSEs.<a href="#section-2.1.2.3-1" class="pilcrow">¶</a></p>
+<span id="name-example-mpls-stack-illustra"></span><div id="fig-nas_sizes_example">
+<figure id="figure-2">
+              <div class="alignLeft art-text artwork" id="section-2.1.2.3-2.1">
+<pre>
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = A                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  ──┑
+|      MNA-Label=bSPL (TBA)             | TC  |0|    TTL        |    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|   Opcode    |      Data               |R|SEL|0|U| NASL=2|NAL=0|    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ MLD_NAS
+|   Opcode    |      Data                     |0|U|  Data |NAL=1| _Select
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|1|                  Data                     |0|    Data       |    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  ──┚
+|      MPLS-Label = B                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      MPLS-Label = C                   | TC  |0|    TTL        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  ──┑
+|      MNA-Label=bSPL (TBA)             | TC  |0|    TTL        |    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|   Opcode    |      Data               |R|HBH|0|U| NASL=5|NAL=0|    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|   Opcode    |      Data                     |0|U|  Data |NAL=0|    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|   Opcode    |      Data                     |0|U|  Data |NAL=0| MLD_NAS
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  _HBH
+|   Opcode    |      Data                     |0|U|  Data |NAL=0|    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|   Opcode    |      Data                     |0|U|  Data |NAL=1|    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|1|                  Data                     |0|    Data       |    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ───┨
+|      MNA-Label=bSPL (TBA)             | TC  |0|    TTL        |    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|   Opcode    |      Data               |R|I2E|0|U| NASL=2|NAL=0|    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ MLD_NAS
+|   Opcode    |      Data                     |0|U|  Data |NAL=1|  _I2E
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    │
+|1|                  Data                     |1|    Data       |    │
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ───┚
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-example-mpls-stack-illustra" class="selfRef">Example MPLS stack illustrating the different NAS sizes.</a>
+              </figcaption></figure>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="supported-in-stack-network-action-opcodes">
+<section id="section-2.1.3">
+          <h4 id="name-supported-in-stack-network-">
+<a href="#section-2.1.3" class="section-number selfRef">2.1.3. </a><a href="#name-supported-in-stack-network-" class="section-name selfRef">Supported In-Stack Network Action Opcodes</a>
+          </h4>
+<p id="section-2.1.3-1">An LSR <span class="bcp14">MUST</span> signal the network action opcodes it supports.
+If a network action opcode is not signaled, it is assumed that this opcode is not supported by the node.<a href="#section-2.1.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="post-stack-mna-capabilities">
+<section id="section-2.2">
+        <h3 id="name-post-stack-mna-capabilities">
+<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-post-stack-mna-capabilities" class="section-name selfRef">Post-Stack MNA Capabilities</a>
+        </h3>
+<p id="section-2.2-1">The Post-Stack MNA solution <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span> allows network actions and their ancillary data to be encoded after the bottom of the MPLS label stack in a Post-Stack MPLS Header (PSMH).
+Section 5.3 of <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span> requires that each participating node signals its Post-Stack capabilities to the encapsulating node.
+This section defines the parameters for that purpose.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
+<div id="post-stack-mna-support">
+<section id="section-2.2.1">
+          <h4 id="name-post-stack-mna-support">
+<a href="#section-2.2.1" class="section-number selfRef">2.2.1. </a><a href="#name-post-stack-mna-support" class="section-name selfRef">Post-Stack MNA Support</a>
+          </h4>
+<p id="section-2.2.1-1">A node <span class="bcp14">MAY</span> support Post-Stack MNA processing.
+The encapsulating node <span class="bcp14">MUST NOT</span> add a Post-Stack MPLS Header to a packet if the decapsulating node does not support Post-Stack MNA processing <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.
+Therefore, the ingress LER needs to discover whether each node on the path supports Post-Stack MNA.<a href="#section-2.2.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="maximum-post-stack-mpls-header-size-mldpsmh">
+<section id="section-2.2.2">
+          <h4 id="name-maximum-post-stack-mpls-hea">
+<a href="#section-2.2.2" class="section-number selfRef">2.2.2. </a><a href="#name-maximum-post-stack-mpls-hea" class="section-name selfRef">Maximum Post-Stack MPLS Header Size (MLD_PSMH)</a>
+          </h4>
+<p id="section-2.2.2-1">The PSMH-LEN field in the Post-Stack MPLS Header indicates the total length of the Post-Stack MPLS Header in 4-octet units, excluding the 4-byte PSMH type header <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.
+Hardware implementations may have limits on the maximum PSMH size they can process.
+The maximum supported PSMH length is referred to as MLD_PSMH in this document, analogue to the scope-specific values of MLD_NAS for ISD.
+It is expressed in 4-octet units, consistent with the PSMH-LEN field encoding.
+An LSR <span class="bcp14">SHOULD</span> signal its MLD_PSMH to the ingress LER.
+Based on the signaled parameters, the ingress LER <span class="bcp14">MUST</span> ensure the following:<a href="#section-2.2.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2.2.2-2.1">
+              <p id="section-2.2.2-2.1.1">The ingress LER <span class="bcp14">MUST NOT</span> add a PSMH with a PSMH-LEN exceeding the MLD_PSMH of any node that will process that PSMH.<a href="#section-2.2.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="readable-label-depth-including-post-stack-mpls-header-rldpsmh">
+<section id="section-2.2.3">
+          <h4 id="name-readable-label-depth-includ">
+<a href="#section-2.2.3" class="section-number selfRef">2.2.3. </a><a href="#name-readable-label-depth-includ" class="section-name selfRef">Readable Label Depth Including Post-Stack MPLS Header (RLD_PSMH)</a>
+          </h4>
+<p id="section-2.2.3-1">Section 5.3 of <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span> defines the "Readable Label Depth including Post-Stack MPLS Header" as the total depth a node can parse, including both the MPLS label stack and the PSMH.
+This parameter is referred to as RLD_PSMH in this document and is expressed in 4-octet units.
+When the RLD_PSMH is signaled, the ingress LER <span class="bcp14">MUST</span> ensure that the combined size of the MPLS label stack and any PSMH intended for a node does not exceed that node's RLD_PSMH.<a href="#section-2.2.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="supported-post-stack-network-action-opcodes">
+<section id="section-2.2.4">
+          <h4 id="name-supported-post-stack-networ">
+<a href="#section-2.2.4" class="section-number selfRef">2.2.4. </a><a href="#name-supported-post-stack-networ" class="section-name selfRef">Supported Post-Stack Network Action Opcodes</a>
+          </h4>
+<p id="section-2.2.4-1">The Post-Stack network action opcode space (MNA-PS-OP) is 7 bits, supporting 128 opcodes <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.
+A node <span class="bcp14">MUST</span> signal the Post-Stack network action opcodes it supports.
+The Post-Stack opcode space is separate from the In-Stack opcode space; a node may support an opcode in-stack, post-stack, or both.<a href="#section-2.2.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="lsp-ping-mna-operation-overview">
+<section id="section-3">
+      <h2 id="name-lsp-ping-mna-operation-over">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-lsp-ping-mna-operation-over" class="section-name selfRef">LSP Ping MNA Operation Overview</a>
+      </h2>
+<p id="section-3-1">The MNA capability discovery mechanism operates as follows:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3-2">
+<li id="section-3-2.1">
+          <p id="section-3-2.1.1">The ingress LER sends MPLS echo request messages containing the MNA Capabilities Query TLV. In traceroute mode, echo requests are sent with incrementing TTL values to reach each node on the path. In ping mode, a single echo request is sent to the egress LER.<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-2.2">
+          <p id="section-3-2.2.1">Each node that receives the echo request and supports MNA capability discovery responds with an MPLS echo reply containing the MNA Capabilities Response TLV. The response includes sub-TLVs corresponding to the queried capabilities.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-2.3">
+          <p id="section-3-2.3.1">The ingress LER aggregates the received responses to determine path-wide MNA constraints. Specifically:<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-2.3.2.1">
+              <p id="section-3-2.3.2.1.1">The path-wide RLD is the minimum RLD reported by any node on the path.<a href="#section-3-2.3.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-2.3.2.2">
+              <p id="section-3-2.3.2.2.1">The path-wide MLD_NAS_HBH is the minimum MLD_NAS_HBH reported by any node.<a href="#section-3-2.3.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-2.3.2.3">
+              <p id="section-3-2.3.2.3.1">The MLD_NAS_Select for a specific node is the value reported by that node.<a href="#section-3-2.3.2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-2.3.2.4">
+              <p id="section-3-2.3.2.4.1">The MLD_NAS_I2E is the value reported by the egress node.<a href="#section-3-2.3.2.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-2.3.2.5">
+              <p id="section-3-2.3.2.5.1">The path-wide supported opcodes for HBH-scoped NAS is the intersection of opcodes supported by all nodes.<a href="#section-3-2.3.2.5.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+      </ol>
+<p id="section-3-3">The ingress LER <span class="bcp14">SHOULD</span> perform MNA capability discovery before pushing MNA-enabled label stacks onto a path. The ingress LER <span class="bcp14">SHOULD</span> re-query capabilities when the path changes, e.g., due to IGP reconvergence or Fast Reroute activation.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<div id="mna-capabilities-query-tlv">
+<section id="section-3.1">
+        <h3 id="name-mna-capabilities-query-tlv">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-mna-capabilities-query-tlv" class="section-name selfRef">MNA Capabilities Query TLV</a>
+        </h3>
+<p id="section-3.1-1">The MNA Capabilities Query TLV is carried in the MPLS Echo Request message.
+Its format is as follows:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<span id="name-mna-capabilities-query-tlv-2"></span><div id="fig-query-tlv">
+<figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="section-3.1-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  MNA Cap. Query Type (TBA1)   |            Length             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Query Flags  |                   Reserved                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-mna-capabilities-query-tlv-2" class="selfRef">MNA Capabilities Query TLV.</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.1-3">The fields are defined as follows:<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.1-4.1">
+            <p id="section-3.1-4.1.1">Type: Indicates the MNA Capabilities Query TLV. The value is TBA1.<a href="#section-3.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.1-4.2">
+            <p id="section-3.1-4.2.1">Length: The length of the Value field in octets. For this TLV, Length is 4.<a href="#section-3.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.1-4.3">
+            <p id="section-3.1-4.3.1">Query Flags: An 8-bit field indicating which capabilities are being queried:<a href="#section-3.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<span id="name-query-flags"></span><div id="query-flags">
+<table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-query-flags" class="selfRef">Query Flags.</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Bit</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+              <td class="text-left" rowspan="1" colspan="1">QUERY_RLD</td>
+              <td class="text-left" rowspan="1" colspan="1">Query the Readable Label Depth</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">1</td>
+              <td class="text-left" rowspan="1" colspan="1">QUERY_MLD_NAS</td>
+              <td class="text-left" rowspan="1" colspan="1">Query NAS Maximum Label Depth (scopes)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">2</td>
+              <td class="text-left" rowspan="1" colspan="1">QUERY_ISD_OPCODES</td>
+              <td class="text-left" rowspan="1" colspan="1">Query supported network action opcodes for ISD</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">3</td>
+              <td class="text-left" rowspan="1" colspan="1">QUERY_PS_MNA</td>
+              <td class="text-left" rowspan="1" colspan="1">Query Post-Stack MNA capabilities (support, MLD_PSMH, RLD_PSMH, PS opcodes)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">4-7</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <span class="bcp14">MUST</span> be set to zero on transmit, ignored on receipt</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.1-6.1">
+            <p id="section-3.1-6.1.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.1-7">A node that receives an MNA Capabilities Query TLV with all Query Flags set to zero <span class="bcp14">SHOULD</span> respond with all available MNA capabilities.<a href="#section-3.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="mna-capabilities-response-tlv">
+<section id="section-3.2">
+        <h3 id="name-mna-capabilities-response-t">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-mna-capabilities-response-t" class="section-name selfRef">MNA Capabilities Response TLV</a>
+        </h3>
+<p id="section-3.2-1">The MNA Capabilities Response TLV is carried in the MPLS Echo Reply message. Its format is as follows:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<span id="name-mna-capabilities-response-tl"></span><div id="fig-response-tlv">
+<figure id="figure-4">
+          <div class="alignLeft art-text artwork" id="section-3.2-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| MNA Cap. Response Type (TBA2) |            Length             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
+//                   List of Sub-TLVs                          //
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<a href="#name-mna-capabilities-response-tl" class="selfRef">MNA Capabilities Response TLV.</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.2-3">The fields are defined as follows:<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.2-4.1">
+            <p id="section-3.2-4.1.1">Type: Indicates the MNA Capabilities Response TLV. The value is TBA2.<a href="#section-3.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-4.2">
+            <p id="section-3.2-4.2.1">Length: The length of the Value field in octets.<a href="#section-3.2-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.2-5">The Value field consists of one or more sub-TLVs as defined in the following sections. The responding node <span class="bcp14">MUST</span> include sub-TLVs corresponding to the flags set in the Query TLV. If no flags were set in the query, the responding node <span class="bcp14">SHOULD</span> include all sub-TLVs for which it has information.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
+<div id="rld-sub-tlv">
+<section id="section-3.2.1">
+          <h4 id="name-rld-sub-tlv">
+<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-rld-sub-tlv" class="section-name selfRef">RLD Sub-TLV</a>
+          </h4>
+<p id="section-3.2.1-1">The RLD Sub-TLV reports the Readable Label Depth of the responding node.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
+<span id="name-rld-sub-tlv-2"></span><div id="fig-rld-tlv">
+<figure id="figure-5">
+            <div class="alignLeft art-text artwork" id="section-3.2.1-2.1">
+<pre>
+0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      RLD Sub-type (1)         |         Length = 4            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   RLD Value   |                   Reserved                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<a href="#name-rld-sub-tlv-2" class="selfRef">RLD Sub-TLV.</a>
+            </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.2.1-3.1">
+              <p id="section-3.2.1-3.1.1">Sub-type: 1 (RLD).<a href="#section-3.2.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.1-3.2">
+              <p id="section-3.2.1-3.2.1">Length: 4 octets.<a href="#section-3.2.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.1-3.3">
+              <p id="section-3.2.1-3.3.1">RLD Value: An 8-bit unsigned integer indicating the number of LSEs the node can parse without performance impact. A value of 0 indicates that the node did not provide an RLD value.<a href="#section-3.2.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.1-3.4">
+              <p id="section-3.2.1-3.4.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="mldnas-sub-tlv">
+<section id="section-3.2.2">
+          <h4 id="name-mld_nas-sub-tlv">
+<a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-mld_nas-sub-tlv" class="section-name selfRef">MLD_NAS Sub-TLV</a>
+          </h4>
+<p id="section-3.2.2-1">The MLD_NAS Sub-TLV reports the maximum supported NAS sizes for each scope. All three scope values are encoded in a single sub-TLV.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
+<span id="name-mld_nas-sub-tlv-2"></span><div id="fig-mld-tlv">
+<figure id="figure-6">
+            <div class="alignLeft art-text artwork" id="section-3.2.2-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    MLD_NAS Sub-type (2)       |         Length = 4            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| MLD_NAS_Select| MLD_NAS_HBH   | MLD_NAS_I2E   |  Reserved     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<a href="#name-mld_nas-sub-tlv-2" class="selfRef">MLD_NAS Sub-TLV.</a>
+            </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.2.2-3.1">
+              <p id="section-3.2.2-3.1.1">Sub-type: 2 (MLD_NAS).<a href="#section-3.2.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.2-3.2">
+              <p id="section-3.2.2-3.2.1">Length: 4 octets.<a href="#section-3.2.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.2-3.3">
+              <p id="section-3.2.2-3.3.1">MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported.<a href="#section-3.2.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.2-3.4">
+              <p id="section-3.2.2-3.4.1">MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported.<a href="#section-3.2.2-3.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.2-3.5">
+              <p id="section-3.2.2-3.5.1">MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported.<a href="#section-3.2.2-3.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.2-3.6">
+              <p id="section-3.2.2-3.6.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.2-3.6.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="isd-opcodes">
+<section id="section-3.2.3">
+          <h4 id="name-supported-in-stack-opcodes-">
+<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-supported-in-stack-opcodes-" class="section-name selfRef">Supported In-Stack Opcodes Sub-TLV</a>
+          </h4>
+<p id="section-3.2.3-1">The Supported In-Stack Opcodes Sub-TLV reports the network action opcodes supported by the responding node using a bitmap encoding. The MNA opcode space is 7 bits, supporting 128 opcodes. Each bit in the bitmap corresponds to one opcode value.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
+<span id="name-supported-in-stack-opcodes-s"></span><div id="fig-opcode-tlv">
+<figure id="figure-7">
+            <div class="alignLeft art-text artwork" id="section-3.2.3-2.1">
+<pre>
+0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Opcodes Sub-type (3)         |         Length = 16           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Supported Opcodes bitmap (bits 0-31)              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Supported Opcodes bitmap (bits 32-63)             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Supported Opcodes bitmap (bits 64-95)             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Supported Opcodes bitmap (bits 96-127)            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<a href="#name-supported-in-stack-opcodes-s" class="selfRef">Supported In-Stack Opcodes Sub-TLV.</a>
+            </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.2.3-3.1">
+              <p id="section-3.2.3-3.1.1">Sub-type: 3 (Supported ISD Opcodes).<a href="#section-3.2.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.3-3.2">
+              <p id="section-3.2.3-3.2.1">Length: 16 octets.<a href="#section-3.2.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.3-3.3">
+              <p id="section-3.2.3-3.3.1">Supported ISD Opcodes bitmap: A 128-bit bitmap where bit N (counting from bit 0 as the most significant bit of the first octet) corresponds to opcode value N. If bit N is set to 1, the node supports opcode N. If bit N is set to 0, the node does not support opcode N.<a href="#section-3.2.3-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="post-stack-mna-capabilities-sub-tlv">
+<section id="section-3.2.4">
+          <h4 id="name-post-stack-mna-capabilities-">
+<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-post-stack-mna-capabilities-" class="section-name selfRef">Post-Stack MNA Capabilities Sub-TLV</a>
+          </h4>
+<p id="section-3.2.4-1">The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-Stack MNA processing, the maximum PSMH size, and the RLD including PSMH.<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
+<span id="name-post-stack-mna-capabilities-s"></span><div id="fig-psd">
+<figure id="figure-8">
+            <div class="alignLeft art-text artwork" id="section-3.2.4-2.1">
+<pre>
+0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    PS MNA Cap. Sub-type (4)   |         Length = 4            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   PS Flags    | MLD_PSMH      |  RLD_PSMH    |  Reserved      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<a href="#name-post-stack-mna-capabilities-s" class="selfRef">Post-Stack MNA Capabilities Sub-TLV.</a>
+            </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.2.4-3.1">
+              <p id="section-3.2.4-3.1.1">Sub-type: 4 (Post-Stack MNA Capabilities).<a href="#section-3.2.4-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.4-3.2">
+              <p id="section-3.2.4-3.2.1">Length: 4 octets.<a href="#section-3.2.4-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.4-3.3">
+              <p id="section-3.2.4-3.3.1">PS Flags: An 8-bit field.<a href="#section-3.2.4-3.3.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.2.4-3.3.2.1">
+                  <p id="section-3.2.4-3.3.2.1.1">Bit 0: PS_SUPPORTED. If set to 1, the node supports Post-Stack MNA processing as defined in <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>. If set to 0, Post-Stack MNA is not supported and the remaining fields in this sub-TLV <span class="bcp14">SHOULD</span> be ignored.<a href="#section-3.2.4-3.3.2.1.1" class="pilcrow">¶</a></p>
+</li>
+                <li class="normal" id="section-3.2.4-3.3.2.2">
+                  <p id="section-3.2.4-3.3.2.2.1">Bits 1-7: Reserved. <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.4-3.3.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              </ul>
+</li>
+            <li class="normal" id="section-3.2.4-3.4">
+              <p id="section-3.2.4-3.4.1">MLD_PSMH: An 8-bit unsigned integer indicating the maximum Post-Stack MPLS Header length (in 4-octet units, excluding the PSMH type header) that the node can process. A value of 0 indicates that the node did not provide this value. The valid range corresponds to the 8-bit PSMH-LEN field defined in <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.<a href="#section-3.2.4-3.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.4-3.5">
+              <p id="section-3.2.4-3.5.1">RLD_PSMH: An 8-bit unsigned integer indicating the Readable Label Depth including the Post-Stack MPLS Header, in 4-octet units. A value of 0 indicates that the node did not provide this value.<a href="#section-3.2.4-3.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.4-3.6">
+              <p id="section-3.2.4-3.6.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.4-3.6.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="supported-post-stack-opcodes-sub-tlv">
+<section id="section-3.2.5">
+          <h4 id="name-supported-post-stack-opcode">
+<a href="#section-3.2.5" class="section-number selfRef">3.2.5. </a><a href="#name-supported-post-stack-opcode" class="section-name selfRef">Supported Post-Stack Opcodes Sub-TLV</a>
+          </h4>
+<p id="section-3.2.5-1">The Supported Post-Stack Opcodes Sub-TLV reports the Post-Stack network action opcodes supported by the responding node.
+The Post-Stack opcode space is 7 bits (128 values), identical to the In-Stack opcode in <a href="#isd-opcodes" class="auto internal xref">Section 3.2.3</a> but independent from it.
+For the supported PSD Opcodes Sub-TLV, the sub-type 5 (Supported PSD Opcodes) is used.
+The format is identical to <a href="#fig-opcode-tlv" class="auto internal xref">Figure 7</a>.<a href="#section-3.2.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="processing-rules">
+<section id="section-4">
+      <h2 id="name-processing-rules">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-processing-rules" class="section-name selfRef">Processing Rules</a>
+      </h2>
+<p id="section-4-1">This section defines the processing rules for querying and responding nodes.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="ingress-ler-querier">
+<section id="section-4.1">
+        <h3 id="name-ingress-ler-querier">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-ingress-ler-querier" class="section-name selfRef">Ingress LER (Querier)</a>
+        </h3>
+<p id="section-4.1-1">The ingress LER constructs MPLS echo request messages containing the MNA Capabilities Query TLV.
+In traceroute mode, the ingress LER sends echo requests with TTL values from 1 to the path length. This allows discovery of MNA capabilities at each hop.
+Traceroute mode <span class="bcp14">SHOULD</span> be used when HBH-scoped network actions are planned, as the ingress LER needs the capabilities of every node to correctly place NAS copies within each node's RLD.
+In ping mode, a single echo request with TTL set to 255 is sent.
+This is sufficient when only I2E-scoped network actions are planned, as only the egress node's capabilities are needed.
+After collecting responses, the ingress LER computes path-wide constraints as described in Section 3.
+The ingress LER <span class="bcp14">MUST</span> ensure the following when constructing MPLS stacks with MNA:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.1-2">
+<li id="section-4.1-2.1">
+            <p id="section-4.1-2.1.1">A select-scoped NAS pushed for a specific node <span class="bcp14">MUST NOT</span> exceed that node's MLD_NAS_Select.<a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-2.2">
+            <p id="section-4.1-2.2.1">An HBH-scoped NAS <span class="bcp14">MUST NOT</span> exceed the minimum MLD_NAS_HBH across all nodes on the path.<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-2.3">
+            <p id="section-4.1-2.3.1">An I2E-scoped NAS <span class="bcp14">MUST NOT</span> exceed the egress node's MLD_NAS_I2E.<a href="#section-4.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-2.4">
+            <p id="section-4.1-2.4.1">All NAS intended for a node <span class="bcp14">MUST</span> be within that node's RLD.<a href="#section-4.1-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-4.1-3">When Post-Stack MNA is used, the ingress LER <span class="bcp14">MUST</span> additionally ensure:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.1-4">
+<li id="section-4.1-4.1">
+            <p id="section-4.1-4.1.1">The ingress LER <span class="bcp14">MUST NOT</span> add a Post-Stack MPLS Header to a packet if the decapsulating node does not have the PS_SUPPORTED flag set.<a href="#section-4.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.2">
+            <p id="section-4.1-4.2.1">The PSMH-LEN of any Post-Stack MPLS Header <span class="bcp14">MUST NOT</span> exceed the MLD_PSMH of any node that will process the PSMH.<a href="#section-4.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.3">
+            <p id="section-4.1-4.3.1">The combined size of the MPLS label stack and any PSMH intended for a node <span class="bcp14">MUST NOT</span> exceed that node's RLD_PSMH.<a href="#section-4.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+</section>
+</div>
+<div id="responding-node">
+<section id="section-4.2">
+        <h3 id="name-responding-node">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-responding-node" class="section-name selfRef">Responding Node</a>
+        </h3>
+<p id="section-4.2-1">A node that supports MNA and receives an MPLS echo request containing the MNA Capabilities Query TLV <span class="bcp14">MUST</span> respond with an MPLS echo reply containing the MNA Capabilities Response TLV.
+The responding node <span class="bcp14">MUST</span> include sub-TLVs corresponding to the flags set in the query.
+If the QUERY_RLD flag is set, the RLD Sub-TLV <span class="bcp14">MUST</span> be included.
+If the QUERY_MLD_NAS flag is set, the MLD_NAS Sub-TLV <span class="bcp14">MUST</span> be included.
+If the QUERY_ISD_OPCODES flag is set, the Supported Opcodes Sub-TLV <span class="bcp14">MUST</span> be included.
+If no Query Flags are set (all zero), the responding node <span class="bcp14">SHOULD</span> include all available sub-TLVs.
+The reported capabilities are those of the node as a whole.
+If capabilities vary per interface, the node <span class="bcp14">SHOULD</span> report the capabilities applicable to the interface on which the echo request was received.
+If the QUERY_PS_MNA flag is set, the Post-Stack MNA Capabilities Sub-TLV (sub-type 4) <span class="bcp14">MUST</span> be included.
+If the node supports Post-Stack MNA and the QUERY_PS_MNA flag is set, the Supported Post-Stack Opcodes Sub-TLV (sub-type 5) <span class="bcp14">MUST</span> also be included.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="mna-incapable-nodes">
+<section id="section-4.3">
+        <h3 id="name-mna-incapable-nodes">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-mna-incapable-nodes" class="section-name selfRef">MNA-incapable Nodes</a>
+        </h3>
+<p id="section-4.3-1">A node that does not support MNA will not recognize the MNA Capabilities Query TLV.
+According to RFC 8029, the handling depends on the TLV type value range.
+The TLV type for the MNA Capabilities Query TLV <span class="bcp14">SHOULD</span> be assigned from the range that requires an error message if the TLV is not recognized.
+This allows the ingress LER to detect nodes that do not support MNA.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, it <span class="bcp14">MUST</span> reply with the Return Code TBA3 for MPLS echo reply messages.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="example-2">
+<section id="section-5">
+      <h2 id="name-example-3">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-example-3" class="section-name selfRef">Example</a>
+      </h2>
+<p id="section-5-1">Consider an SR-MPLS path with three LSRs: R1, R2 (transit), and R3 (egress). The ingress LER R0 wants to push an HBH-scoped NAS and a select-scoped NAS for R2 along this path.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">R0 sends MPLS echo requests in traceroute mode with all Query Flags set. The responses are:<a href="#section-5-2" class="pilcrow">¶</a></p>
+<span id="name-example-mna-capabilities-re"></span><div id="table_example_ping">
+<table class="center" id="table-3">
+        <caption>
+<a href="#table-3" class="selfRef">Table 3</a>:
+<a href="#name-example-mna-capabilities-re" class="selfRef">Example MNA Capabilities Responses.</a>
+        </caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Node</th>
+            <th class="text-left" rowspan="1" colspan="1">RLD</th>
+            <th class="text-left" rowspan="1" colspan="1">MLD_Select</th>
+            <th class="text-left" rowspan="1" colspan="1">MLD_HBH</th>
+            <th class="text-left" rowspan="1" colspan="1">MLD_I2E</th>
+            <th class="text-left" rowspan="1" colspan="1">PS_Supported</th>
+            <th class="text-left" rowspan="1" colspan="1">MLD_PSMH</th>
+            <th class="text-left" rowspan="1" colspan="1">RLD_PSMH</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">R1</td>
+            <td class="text-left" rowspan="1" colspan="1">20</td>
+            <td class="text-left" rowspan="1" colspan="1">9</td>
+            <td class="text-left" rowspan="1" colspan="1">9</td>
+            <td class="text-left" rowspan="1" colspan="1">0 (not egress)</td>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            <td class="text-left" rowspan="1" colspan="1">16</td>
+            <td class="text-left" rowspan="1" colspan="1">36</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">R2</td>
+            <td class="text-left" rowspan="1" colspan="1">51</td>
+            <td class="text-left" rowspan="1" colspan="1">9</td>
+            <td class="text-left" rowspan="1" colspan="1">3</td>
+            <td class="text-left" rowspan="1" colspan="1">0 (not egress)</td>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            <td class="text-left" rowspan="1" colspan="1">8</td>
+            <td class="text-left" rowspan="1" colspan="1">59</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">R3</td>
+            <td class="text-left" rowspan="1" colspan="1">35</td>
+            <td class="text-left" rowspan="1" colspan="1">9</td>
+            <td class="text-left" rowspan="1" colspan="1">9</td>
+            <td class="text-left" rowspan="1" colspan="1">9</td>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            <td class="text-left" rowspan="1" colspan="1">16</td>
+            <td class="text-left" rowspan="1" colspan="1">51</td>
+          </tr>
+        </tbody>
+      </table>
+</div>
+<p id="section-5-4">From these responses, R0 determines:<a href="#section-5-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5-5.1">
+          <p id="section-5-5.1.1">Path-wide RLD: min(20, 51, 35) = 20 LSEs<a href="#section-5-5.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-5.2">
+          <p id="section-5-5.2.1">Path-wide MLD_NAS_HBH: min(9, 3, 9) = 3 LSEs<a href="#section-5-5.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-5.3">
+          <p id="section-5-5.3.1">MLD_NAS_Select for R2: 9 LSEs<a href="#section-5-5.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-5.4">
+          <p id="section-5-5.4.1">MLD_NAS_I2E: 9 LSEs (from R3)<a href="#section-5-5.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-5.5">
+          <p id="section-5-5.5.1">Post-Stack MNA is supported on all nodes (PS_SUPPORTED set at R1, R2, R3).<a href="#section-5-5.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-5.6">
+          <p id="section-5-5.6.1">Path-wide MLD_PSMH for HBH-scoped PSMH: min(16, 8, 16) = 8 (in 4-octet units).<a href="#section-5-5.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-5.7">
+          <p id="section-5-5.7.1">MLD_PSMH for I2E-scoped PSMH: 16 (from R3).<a href="#section-5-5.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-5.8">
+          <p id="section-5-5.8.1">Path-wide RLD_PSMH: min(36, 59, 51) = 36 (in 4-octet units).<a href="#section-5-5.8.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-5-6">R0 can now construct a label stack ensuring that all NAS are within each node's RLD and do not exceed the per-scope MLD_NAS constraints. For Post-Stack MNA, R0 ensures that the PSMH does not exceed the path-wide MLD_PSMH and that the combined label stack and PSMH do not exceed any node's RLD_PSMH.<a href="#section-5-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-6">
+      <h2 id="name-security-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-6-1">The security considerations described in <span>[<a href="#rfc8029" class="cite xref">rfc8029</a>]</span> apply to this document.
+The MNA capability discovery mechanism reveals information about node capabilities, which could potentially be exploited by an attacker to craft targeted attacks against nodes with limited MNA support.
+Nodes that support MNA capability discovery <span class="bcp14">SHOULD</span> support configuration options to enable or disable the MNA Capabilities Query/Response functionality.
+By default, MNA capability discovery <span class="bcp14">SHOULD</span> be enabled only within an MNA-capable MPLS domain.
+The security considerations from <span>[<a href="#I-D.ietf-mpls-mna-hdr" class="cite xref">I-D.ietf-mpls-mna-hdr</a>]</span> and <span>[<a href="#rfc9789" class="cite xref">rfc9789</a>]</span> also apply.<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-7">
+      <h2 id="name-iana-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-7-1">This section requests new TLVs and sub-TLVs.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<div id="tlv-assignments">
+<section id="section-7.1">
+        <h3 id="name-tlv-assignments">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-tlv-assignments" class="section-name selfRef">TLV Assignments</a>
+        </h3>
+<p id="section-7.1-1">IANA is requested to assign two new TLVs from the "TLV" registry in the "Multiprotocol Label Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group.
+The TLV values <span class="bcp14">SHOULD</span> be assigned from the range that requires an error message if the TLV is not recognized.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<span id="name-new-tlvs"></span><div id="table_iana">
+<table class="center" id="table-4">
+          <caption>
+<a href="#table-4" class="selfRef">Table 4</a>:
+<a href="#name-new-tlvs" class="selfRef">New TLVs.</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">TLV Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+              <th class="text-left" rowspan="1" colspan="1">Sub-TLV Registry</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">TBA1</td>
+              <td class="text-left" rowspan="1" colspan="1">MNA Capabilities Query</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">TBA2</td>
+              <td class="text-left" rowspan="1" colspan="1">MNA Capabilities Response</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+              <td class="text-left" rowspan="1" colspan="1">See <a href="#table_iana2" class="auto internal xref">Table 5</a>
+</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+</section>
+</div>
+<div id="new-sub-tlv-registry">
+<section id="section-7.2">
+        <h3 id="name-new-sub-tlv-registry">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-new-sub-tlv-registry" class="section-name selfRef">New Sub-TLV Registry</a>
+        </h3>
+<p id="section-7.2-1">IANA is requested to create a new sub-TLV registry for TLV TBA2 with the following initial entries:<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<span id="name-sub-tlv-registry-for-tlv-tb"></span><div id="table_iana2">
+<table class="center" id="table-5">
+          <caption>
+<a href="#table-5" class="selfRef">Table 5</a>:
+<a href="#name-sub-tlv-registry-for-tlv-tb" class="selfRef">Sub-TLV Registry for TLV TBA2.</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Sub-Type</th>
+              <th class="text-left" rowspan="1" colspan="1">Sub-TLV Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">1</td>
+              <td class="text-left" rowspan="1" colspan="1">RLD</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">2</td>
+              <td class="text-left" rowspan="1" colspan="1">MLD_NAS</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">3</td>
+              <td class="text-left" rowspan="1" colspan="1">Supported ISD Opcodes</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">Post-Stack MNA Capabilities</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">5</td>
+              <td class="text-left" rowspan="1" colspan="1">Supported PSD Opcodes</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+</section>
+</div>
+<div id="return-code-assignment">
+<section id="section-7.3">
+        <h3 id="name-return-code-assignment">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-return-code-assignment" class="section-name selfRef">Return Code Assignment</a>
+        </h3>
+<p id="section-7.3-1">IANA is requested to assign a new Return Code from the "Return Code" registry in the "Multiprotocol Label
+Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group as follows<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<span id="name-new-return-code"></span><div id="table_return_code">
+<table class="center" id="table-6">
+          <caption>
+<a href="#table-6" class="selfRef">Table 6</a>:
+<a href="#name-new-return-code" class="selfRef">New return code.</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">Meaning</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">TBA3</td>
+              <td class="text-left" rowspan="1" colspan="1">MNA not supported</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+      <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-mpls-mna-fwk">[I-D.ietf-mpls-mna-fwk]</dt>
+        <dd>
+<span class="refAuthor">Andersson, L.</span>, <span class="refAuthor">Bryant, S.</span>, <span class="refAuthor">Bocci, M.</span>, and <span class="refAuthor">T. Li</span>, <span class="refTitle">"MPLS Network Actions (MNA) Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-fwk-15</span>, <time datetime="2024-12-27" class="refDate">27 December 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-fwk-15">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-fwk-15</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-mpls-mna-hdr">[I-D.ietf-mpls-mna-hdr]</dt>
+        <dd>
+<span class="refAuthor">Rajamanickam, J.</span>, <span class="refAuthor">Gandhi, R.</span>, <span class="refAuthor">Zigler, R.</span>, <span class="refAuthor">Song, H.</span>, and <span class="refAuthor">K. Kompella</span>, <span class="refTitle">"MPLS Network Action (MNA) Sub-Stack Specification including In-Stack Network Actions and Data"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-hdr-21</span>, <time datetime="2026-02-24" class="refDate">24 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-hdr-21">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-hdr-21</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-mpls-mna-ps-hdr">[I-D.ietf-mpls-mna-ps-hdr]</dt>
+        <dd>
+<span class="refAuthor">Rajamanickam, J.</span>, <span class="refAuthor">Gandhi, R.</span>, <span class="refAuthor">Zigler, R.</span>, <span class="refAuthor">Dong, J.</span>, and <span class="refAuthor">J. Bhattacharya</span>, <span class="refTitle">"Post-Stack MPLS Network Action (MNA) Solution"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-ps-hdr-07</span>, <time datetime="2026-02-24" class="refDate">24 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-ps-hdr-07">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-ps-hdr-07</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-mpls-mna-usecases">[I-D.ietf-mpls-mna-usecases]</dt>
+        <dd>
+<span class="refAuthor">Saad, T.</span>, <span class="refAuthor">Makhijani, K.</span>, <span class="refAuthor">Song, H.</span>, and <span class="refAuthor">G. Mirsky</span>, <span class="refTitle">"Use Cases for MPLS Network Action Indicators and MPLS Ancillary Data"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-usecases-15</span>, <time datetime="2024-09-23" class="refDate">23 September 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-usecases-15">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-usecases-15</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="IhMe25">[IhMe25]</dt>
+        <dd>
+<span class="refAuthor">Ihle, F.</span> and <span class="refAuthor">M. Menth</span>, <span class="refTitle">"MPLS Network Actions; Technological Overview and P4-Based Implementation on a High-Speed Switching ASIC"</span>, <span class="seriesInfo">DOI 10.1109/OJCOMS.2025.3557082</span>, <time datetime="2025-04-02" class="refDate">2 April 2025</time>, <span>&lt;<a href="https://ieeexplore.ieee.org/document/10947349">https://ieeexplore.ieee.org/document/10947349</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="rfc8029">[rfc8029]</dt>
+        <dd>
+<span class="refAuthor">Kompella, K.</span>, <span class="refAuthor">Swallow, G.</span>, <span class="refAuthor">Pignataro, C., Ed.</span>, <span class="refAuthor">Kumar, N.</span>, <span class="refAuthor">Aldrin, S.</span>, and <span class="refAuthor">M. Chen</span>, <span class="refTitle">"Detecting Multiprotocol Label Switched (MPLS) Data-Plane Failures"</span>, <span class="seriesInfo">RFC 8029</span>, <span class="seriesInfo">DOI 10.17487/RFC8029</span>, <time datetime="2017-03" class="refDate">March 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8029">https://www.rfc-editor.org/rfc/rfc8029</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="rfc9789">[rfc9789]</dt>
+      <dd>
+<span class="refAuthor">Andersson, L.</span>, <span class="refAuthor">Bryant, S.</span>, <span class="refAuthor">Bocci, M.</span>, and <span class="refAuthor">T. Li</span>, <span class="refTitle">"MPLS Network Actions (MNAs) Framework"</span>, <span class="seriesInfo">RFC 9789</span>, <span class="seriesInfo">DOI 10.17487/RFC9789</span>, <time datetime="2025-07" class="refDate">July 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9789">https://www.rfc-editor.org/rfc/rfc9789</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-A">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Fabian Ihle</span></div>
+<div dir="auto" class="left"><span class="org">University of Tuebingen</span></div>
+<div dir="auto" class="left"><span class="locality">Tuebingen</span></div>
+<div dir="auto" class="left"><span class="country-name">Germany</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:fabian.ihle@uni-tuebingen.de" class="email">fabian.ihle@uni-tuebingen.de</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Xueyan Song</span></div>
+<div dir="auto" class="left"><span class="org">ZTE Corporation</span></div>
+<div dir="auto" class="left"><span class="country-name">China</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:song.xueyan2@zte.com.cn" class="email">song.xueyan2@zte.com.cn</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Michael Menth</span></div>
+<div dir="auto" class="left"><span class="org">University of Tuebingen</span></div>
+<div dir="auto" class="left"><span class="locality">Tuebingen</span></div>
+<div dir="auto" class="left"><span class="country-name">Germany</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:michael.menth@uni-tuebingen.de" class="email">michael.menth@uni-tuebingen.de</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
