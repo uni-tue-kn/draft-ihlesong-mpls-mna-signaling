@@ -87,7 +87,7 @@ These capabilities include:
 2. Post-Stack MNA capabilities:
    - Whether the node supports Post-Stack MNA processing as defined in {{?I-D.ietf-mpls-mna-ps-hdr}},
    - The maximum Post-Stack MPLS Header (PSMH) size (MLD_PSMH),
-   - The RLD including the PSMH (RLD_PSMH)
+   - The RLD including the PSMH (RLD_PSMH),
    - The supported Post-Stack network action opcodes.
 
 This document defines new TLVs for the MPLS echo request/reply messages {{rfc8029}} to query and report MNA capabilities. The mechanism supports both "ping" mode (querying only the egress node) and "traceroute" mode (querying all nodes along the path).
@@ -107,7 +107,7 @@ This document makes use of the terms defined in {{?I-D.ietf-mpls-mna-hdr}} and i
 | PSMH         | Post-Stack MPLS Header   | The header after the BOS carrying post-stack network actions and ancillary data.         | {{?I-D.ietf-mpls-mna-ps-hdr}} |
 | PSD          | Post-Stack Data          | Network actions and data encoded after the MPLS label stack.                             | {{?I-D.ietf-mpls-mna-ps-hdr}} |
 | ISD          | In-Stack Data            | Network actions and data encoded within the MPLS label stack.                            | {{?I-D.ietf-mpls-mna-hdr}}    |
-| MLD_PSMH     | NAS Maximum Label Depth  | The maximum PSMH size a node can process, in 4-octet units.                              | This document                 |
+| MLD_PSMH     | Maximum PSMH Size        | The maximum PSMH size a node can process, in 4-octet units.                              | This document                 |
 | RLD_PSMH     | RLD including PSMH       | The total parseable depth including label stack and PSMH, in 4-octet units.              | This document                 |
 {: #table_abbrev title="Abbreviations."}
 
@@ -166,7 +166,7 @@ Based on the signaled parameters, the ingress LER MUST ensure the following when
 
 #### Example
 
-{{fig-nas_sizes_example}} illustrates the different MLD_NAS sizes in an MPLS stack that are signaled to the LSR.
+{{fig-nas_sizes_example}} illustrates the different MLD_NAS sizes in an MPLS stack that are signaled by the LSR.
 In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-scoped NAS of 7 LSEs, and an I2E-scoped NAS of 4 LSEs.
 
 ~~~~
@@ -192,7 +192,7 @@ Therefore, the ingress LER needs to discover whether each node on the path suppo
 ### Maximum Post-Stack MPLS Header Size (MLD_PSMH)
 The PSMH-LEN field in the Post-Stack MPLS Header indicates the total length of the Post-Stack MPLS Header in 4-octet units, excluding the 4-byte PSMH type header {{?I-D.ietf-mpls-mna-ps-hdr}}.
 Hardware implementations may have limits on the maximum PSMH size they can process.
-The maximum supported PSMH length is referred to as MLD_PSMH in this document, analogue to the scope-specific values of MLD_NAS for ISD.
+The maximum supported PSMH length is referred to as MLD_PSMH in this document, analogous to the scope-specific values of MLD_NAS for ISD.
 It is expressed in 4-octet units, consistent with the PSMH-LEN field encoding.
 An LSR SHOULD signal its MLD_PSMH to the ingress LER.
 Based on the signaled parameters, the ingress LER MUST ensure the following:
@@ -236,7 +236,7 @@ Its format is as follows:
 The fields are defined as follows:
 
 - Type: Indicates the MNA Capabilities Query TLV. The value is TBA1.
-- Length: The length of the Value field in octets. For this TLV, Length is 4.
+- Length: The length of the Value field in octets. For this TLV, Length is 4 octets.
 - Query Flags: An 8-bit field indicating which capabilities are being queried:
 
 | Bit | Name              | Description                                                                 |
@@ -290,9 +290,9 @@ The MLD_NAS Sub-TLV reports the maximum supported NAS sizes for each scope. All 
 
 - Sub-type: 2 (MLD_NAS).
 - Length: 4 octets.
-- MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported.
-- MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported.
-- MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported.
+- MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported. A value of 1 is invalid and MUST NOT be sent; receivers MUST treat it as 0.
+- MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported. A value of 1 is invalid and MUST NOT be sent; receivers MUST treat it as 0.
+- MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported. A value of 1 is invalid and MUST NOT be sent; receivers MUST treat it as 0.
 - Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
 
 ### Supported In-Stack Opcodes Sub-TLV {#isd-opcodes}
@@ -328,7 +328,7 @@ The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-S
 ### Supported Post-Stack Opcodes Sub-TLV
 The Supported Post-Stack Opcodes Sub-TLV reports the Post-Stack network action opcodes supported by the responding node.
 The Post-Stack opcode space is 7 bits (128 values), identical to the In-Stack opcode in {{isd-opcodes}} but independent from it.
-For the supported PSD Opcodes Sub-TLV, the sub-type 5 (Supported PSD Opcodes) is used.
+For the Supported Post-Stack Opcodes Sub-TLV, the sub-type 5 (Supported Post-Stack Opcodes) is used.
 The format is identical to {{fig-opcode-tlv}}.
 
 # Processing Rules
@@ -359,7 +359,7 @@ A node that supports MNA and receives an MPLS echo request containing the MNA Ca
 The responding node MUST include sub-TLVs corresponding to the flags set in the query.
 If the QUERY_RLD flag is set, the RLD Sub-TLV MUST be included.
 If the QUERY_MLD_NAS flag is set, the MLD_NAS Sub-TLV MUST be included.
-If the QUERY_ISD_OPCODES flag is set, the Supported Opcodes Sub-TLV MUST be included.
+If the QUERY_ISD_OPCODES flag is set, the Supported In-Stack Opcodes Sub-TLV MUST be included.
 If no Query Flags are set (all zero), the responding node SHOULD include all available sub-TLVs.
 The reported capabilities are those of the node as a whole.
 If capabilities vary per interface, the node SHOULD report the capabilities applicable to the interface on which the echo request was received.
@@ -431,12 +431,12 @@ IANA is requested to create a new sub-TLV registry for TLV TBA2 with the followi
 | 2        | MLD_NAS                     | This document |
 | 3        | Supported ISD Opcodes       | This document |
 | 4        | Post-Stack MNA Capabilities | This document |
-| 5        | Supported PSD Opcodes       | This document |
+| 5        | Supported Post-Stack Opcodes| This document |
 {: #table_iana2 title="Sub-TLV Registry for TLV TBA2."}
 
 ## Return Code Assignment
 IANA is requested to assign a new Return Code from the "Return Code" registry in the "Multiprotocol Label
-Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group as follows
+Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group as follows.
 
 | Value | Meaning           | Reference     |
 | ----- | ----------------- | ------------- |
