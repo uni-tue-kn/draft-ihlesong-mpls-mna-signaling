@@ -147,7 +147,7 @@ This consumes hardware resources that may be needed to encode other LSEs, e.g., 
 
 Many use cases in the MNA framework {{?I-D.ietf-mpls-mna-usecases}} do not require a maximum-sized NAS of 17 LSEs to encode network actions and their ancillary data.
 Therefore, a NAS can be up to 17 LSEs but nodes can also support smaller maximum NAS.
-By signaling the maximum supported NAS size to the ingress LER, an LSR receiving packets with a larger NAS than supported is avoided.
+Signaling the maximum supported NAS size to the ingress LER prevents an LSR from receiving packets with a larger NAS than it supports.
 This way, the allocated resources for NAS can be reduced if smaller maximum NAS are supported.
 More resources are available for other purposes, and hardware with a low RLD can be made MNA-capable {{IhMe25}}.
 
@@ -176,7 +176,7 @@ In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-
 
 
 ### Supported In-Stack Network Action Opcodes
-An LSR MUST signal the network action opcodes it supports.
+An LSR MUST signal the In-Stack network action opcodes it supports.
 If a network action opcode is not signaled, it is assumed that this opcode is not supported by the node.
 
 ## Post-Stack MNA Capabilities
@@ -220,7 +220,7 @@ The MNA capability discovery mechanism operates as follows:
      - The path-wide MLD_NAS_HBH is the minimum MLD_NAS_HBH reported by any node.
      - The MLD_NAS_Select for a specific node is the value reported by that node.
      - The MLD_NAS_I2E is the value reported by the egress node.
-     - The path-wide supported opcodes for HBH-scoped NAS is the intersection of opcodes supported by all nodes.
+     - The path-wide supported opcodes for HBH-scoped NAS are the intersection of opcodes supported by all nodes.
 
 The ingress LER SHOULD perform MNA capability discovery before pushing MNA-enabled label stacks onto a path. The ingress LER SHOULD re-query capabilities when the path changes, e.g., due to IGP reconvergence or Fast Reroute activation.
 
@@ -297,7 +297,7 @@ The MLD_NAS Sub-TLV reports the maximum supported NAS sizes for each scope. All 
 
 ### Supported In-Stack Opcodes Sub-TLV {#isd-opcodes}
 
-The Supported In-Stack Opcodes Sub-TLV reports the network action opcodes supported by the responding node using a bitmap encoding. The MNA opcode space is 7 bits, supporting 128 opcodes. Each bit in the bitmap corresponds to one opcode value.
+The Supported In-Stack Opcodes Sub-TLV reports the In-Stack network action opcodes supported by the responding node using a bitmap encoding. The MNA opcode space is 7 bits, supporting 128 opcodes. Each bit in the bitmap corresponds to one opcode value.
 
 ~~~~
 {::include ./drawings/opcode-tlv.txt}
@@ -373,14 +373,14 @@ According to RFC 8029, the handling depends on the TLV type value range.
 The TLV type for the MNA Capabilities Query TLV SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
 This allows the ingress LER to detect nodes that do not support MNA.
 
-If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, it MUST reply with the Return Code TBA3 for MPLS echo reply messages.
+If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, it MUST include Return Code TBA3 in the MPLS echo reply message.
 
 # Example
 Consider an SR-MPLS path with three LSRs: R1, R2 (transit), and R3 (egress). The ingress LER R0 wants to push an HBH-scoped NAS and a select-scoped NAS for R2 along this path.
 
 R0 sends MPLS echo requests in traceroute mode with all Query Flags set. The responses are:
 
-| Node | RLD | MLD_Select | MLD_HBH | MLD_I2E        | PS_Supported | MLD_PSMH | RLD_PSMH |
+| Node | RLD | MLD_NAS_Select | MLD_NAS_HBH | MLD_NAS_I2E    | PS_Supported | MLD_PSMH | RLD_PSMH |
 | ---- | --- | ---------- | ------- | -------------- | ------------ | -------- | -------- |
 | R1   | 20  | 9          | 9       | 0 (not egress) | Yes          | 16       | 36       |
 | R2   | 51  | 9          | 3       | 0 (not egress) | Yes          | 8        | 59       |
