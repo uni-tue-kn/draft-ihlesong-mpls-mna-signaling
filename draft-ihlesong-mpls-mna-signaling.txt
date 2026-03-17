@@ -5,10 +5,10 @@
 Multiprotocol Label Switching                                    F. Ihle
 Internet-Draft                                   University of Tuebingen
 Intended status: Standards Track                                 X. Song
-Expires: 11 September 2026                               ZTE Corporation
+Expires: 18 September 2026                               ZTE Corporation
                                                                 M. Menth
                                                  University of Tuebingen
-                                                           10 March 2026
+                                                           17 March 2026
 
 
                Signaling MNA Capabilities Using LSP Ping
@@ -19,12 +19,16 @@ Abstract
    This document defines a mechanism for discovering MPLS Network
    Actions (MNA) capabilities along a Label Switched Path (LSP) using
    the LSP Ping echo request/reply mechanism defined in RFC 8029.  The
-   capabilities include the Readable Label Depth (RLD), the maximum
-   sizes of differently scoped Network Action Sub-stacks (MLD_NAS), and
-   supported network action opcodes.  This mechanism allows the ingress
-   Label Edge Router (LER) to discover MNA capabilities of each transit
-   and egress node on the path, enabling correct construction of MPLS
-   label stacks containing MNA network actions.
+   In-Stack MNA capabilities include the Readable Label Depth (RLD), the
+   maximum sizes of differently scoped Network Action Sub-stacks
+   (MLD_NAS), and supported In-Stack network action opcodes.  The Post-
+   Stack MNA capabilities include the maximum Post-Stack MPLS Header
+   size (MLD_PSMH), the Readable Label Depth including the Post-Stack
+   MPLS Header (RLD_PSMH), and supported Post-Stack network action
+   opcodes.  This mechanism allows the ingress Label Edge Router (LER)
+   to discover MNA capabilities of each transit and egress node on the
+   path, enabling correct construction of MPLS label stacks containing
+   MNA network actions.
 
 About This Document
 
@@ -59,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 September 2026.
+   This Internet-Draft will expire on 18 September 2026.
 
 Copyright Notice
 
@@ -116,7 +120,7 @@ Table of Contents
 
 1.  Introduction
 
-   The MPLS Network Actions (MNA) framework [I-D.ietf-mpls-mna-hdr]
+   The MPLS Network Actions (MNA) framework [I-D.ietf-mpls-mna-fwk]
    provides a general mechanism for encoding network actions and their
    data in the MPLS label stack.  Network actions are encoded in Network
    Action Sub-stacks (NAS) that are placed within (ISD) or follow after
@@ -146,7 +150,7 @@ Table of Contents
 
        *  The maximum Post-Stack MPLS Header (PSMH) size (MLD_PSMH),
 
-       *  The RLD including the PSMH (RLD_PSMH)
+       *  The RLD including the PSMH (RLD_PSMH),
 
        *  The supported Post-Stack network action opcodes.
 
@@ -221,10 +225,10 @@ Table of Contents
    |              |          |MPLS label |                            |
    |              |          |stack.     |                            |
    +--------------+----------+-----------+----------------------------+
-   | MLD_PSMH     |NAS       |The maximum| This document              |
-   |              |Maximum   |PSMH size a|                            |
-   |              |Label     |node can   |                            |
-   |              |Depth     |process, in|                            |
+   | MLD_PSMH     |Maximum   |The maximum| This document              |
+   |              |PSMH Size |PSMH size a|                            |
+   |              |          |node can   |                            |
+   |              |          |process, in|                            |
    |              |          |4-octet    |                            |
    |              |          |units.     |                            |
    +--------------+----------+-----------+----------------------------+
@@ -255,7 +259,7 @@ Table of Contents
    by the LSR.  To that end, the network actions must be within the RLD
    of the node.  For HBH-scoped network actions, the ingress LER that
    pushes the network actions MUST ensure that the actions are readable
-   at each LSR on the path, i.e., that it is placed within the RLD of
+   at each LSR on the path, i.e., that they are placed within the RLD of
    each node.
 
 2.1.1.1.  Example
@@ -307,9 +311,9 @@ Table of Contents
    Many use cases in the MNA framework [I-D.ietf-mpls-mna-usecases] do
    not require a maximum-sized NAS of 17 LSEs to encode network actions
    and their ancillary data.  Therefore, a NAS can be up to 17 LSEs but
-   nodes can also support smaller maximum NAS.  By signaling the maximum
-   supported NAS size to the ingress LER, an LSR receiving packets with
-   a larger NAS than supported is avoided.  This way, the allocated
+   nodes can also support smaller maximum NAS.  Signaling the maximum
+   supported NAS size to the ingress LER prevents an LSR from receiving
+   packets with a larger NAS than it supports.  This way, the allocated
    resources for NAS can be reduced if smaller maximum NAS are
    supported.  More resources are available for other purposes, and
    hardware with a low RLD can be made MNA-capable [IhMe25].
@@ -343,7 +347,7 @@ Table of Contents
 2.1.2.3.  Example
 
    Figure 2 illustrates the different MLD_NAS sizes in an MPLS stack
-   that are signaled to the LSR.  In this example, a select-scoped NAS
+   that are signaled by the LSR.  In this example, a select-scoped NAS
    has a maximum size of 4 LSEs, a hop-by-hop-scoped NAS of 7 LSEs, and
    an I2E-scoped NAS of 4 LSEs.
 
@@ -389,9 +393,9 @@ Table of Contents
 
 2.1.3.  Supported In-Stack Network Action Opcodes
 
-   An LSR MUST signal the network action opcodes it supports.  If a
-   network action opcode is not signaled, it is assumed that this opcode
-   is not supported by the node.
+   An LSR MUST signal the In-Stack network action opcodes it supports.
+   If a network action opcode is not signaled, it is assumed that this
+   opcode is not supported by the node.
 
 2.2.  Post-Stack MNA Capabilities
 
@@ -417,7 +421,7 @@ Table of Contents
    4-byte PSMH type header [I-D.ietf-mpls-mna-ps-hdr].  Hardware
    implementations may have limits on the maximum PSMH size they can
    process.  The maximum supported PSMH length is referred to as
-   MLD_PSMH in this document, analogue to the scope-specific values of
+   MLD_PSMH in this document, analogous to the scope-specific values of
    MLD_NAS for ISD.  It is expressed in 4-octet units, consistent with
    the PSMH-LEN field encoding.  An LSR SHOULD signal its MLD_PSMH to
    the ingress LER.  Based on the signaled parameters, the ingress LER
@@ -474,7 +478,7 @@ Table of Contents
 
        *  The MLD_NAS_I2E is the value reported by the egress node.
 
-       *  The path-wide supported opcodes for HBH-scoped NAS is the
+       *  The path-wide supported opcodes for HBH-scoped NAS are the
           intersection of opcodes supported by all nodes.
 
    The ingress LER SHOULD perform MNA capability discovery before
@@ -503,7 +507,7 @@ Table of Contents
       TBA1.
 
    *  Length: The length of the Value field in octets.  For this TLV,
-      Length is 4.
+      Length is 4 octets.
 
    *  Query Flags: An 8-bit field indicating which capabilities are
       being queried:
@@ -570,7 +574,7 @@ Table of Contents
    The RLD Sub-TLV reports the Readable Label Depth of the responding
    node.
 
-   0                   1                   2                   3
+    0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |      RLD Sub-type (1)         |         Length = 4            |
@@ -613,29 +617,32 @@ Table of Contents
    *  MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum
       number of LSEs in a select-scoped NAS that the node can process.
       Valid range: 2-17.  A value of 0 indicates that select-scoped NAS
-      are not supported.
+      are not supported.  Values of 1 and 18-255 are invalid and MUST
+      NOT be sent; receivers MUST treat them as 0.
 
    *  MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum
       number of LSEs in an HBH-scoped NAS that the node can process.
       Valid range: 2-17.  A value of 0 indicates that HBH-scoped NAS are
-      not supported.
+      not supported.  Values of 1 and 18-255 are invalid and MUST NOT be
+      sent; receivers MUST treat them as 0.
 
    *  MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum
       number of LSEs in an I2E-scoped NAS that the node can process.
       Valid range: 2-17.  A value of 0 indicates that I2E-scoped NAS are
-      not supported.
+      not supported.  Values of 1 and 18-255 are invalid and MUST NOT be
+      sent; receivers MUST treat them as 0.
 
    *  Reserved: MUST be set to zero on transmit and MUST be ignored on
       receipt.
 
 3.2.3.  Supported In-Stack Opcodes Sub-TLV
 
-   The Supported In-Stack Opcodes Sub-TLV reports the network action
-   opcodes supported by the responding node using a bitmap encoding.
-   The MNA opcode space is 7 bits, supporting 128 opcodes.  Each bit in
-   the bitmap corresponds to one opcode value.
+   The Supported In-Stack Opcodes Sub-TLV reports the In-Stack network
+   action opcodes supported by the responding node using a bitmap
+   encoding.  The MNA opcode space is 7 bits, supporting 128 opcodes.
+   Each bit in the bitmap corresponds to one opcode value.
 
-   0                   1                   2                   3
+    0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |  Opcodes Sub-type (3)         |         Length = 16           |
@@ -667,7 +674,7 @@ Table of Contents
    supports Post-Stack MNA processing, the maximum PSMH size, and the
    RLD including PSMH.
 
-   0                   1                   2                   3
+    0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |    PS MNA Cap. Sub-type (4)   |         Length = 4            |
@@ -710,9 +717,9 @@ Table of Contents
    The Supported Post-Stack Opcodes Sub-TLV reports the Post-Stack
    network action opcodes supported by the responding node.  The Post-
    Stack opcode space is 7 bits (128 values), identical to the In-Stack
-   opcode in Section 3.2.3 but independent from it.  For the supported
-   PSD Opcodes Sub-TLV, the sub-type 5 (Supported PSD Opcodes) is used.
-   The format is identical to Figure 7.
+   Opcodes Sub-TLV format in Section 3.2.3 but independent from it.  For
+   the Supported Post-Stack Opcodes Sub-TLV, the sub-type 5 (Supported
+   Post-Stack Opcodes) is used.  The format is identical to Figure 7.
 
 4.  Processing Rules
 
@@ -766,8 +773,8 @@ Table of Contents
    MUST include sub-TLVs corresponding to the flags set in the query.
    If the QUERY_RLD flag is set, the RLD Sub-TLV MUST be included.  If
    the QUERY_MLD_NAS flag is set, the MLD_NAS Sub-TLV MUST be included.
-   If the QUERY_ISD_OPCODES flag is set, the Supported Opcodes Sub-TLV
-   MUST be included.  If no Query Flags are set (all zero), the
+   If the QUERY_ISD_OPCODES flag is set, the Supported In-Stack Opcodes
+   Sub-TLV MUST be included.  If no Query Flags are set (all zero), the
    responding node SHOULD include all available sub-TLVs.  The reported
    capabilities are those of the node as a whole.  If capabilities vary
    per interface, the node SHOULD report the capabilities applicable to
@@ -787,8 +794,8 @@ Table of Contents
    detect nodes that do not support MNA.
 
    If a node does not support MNA, but recognizes the MNA Capabilities
-   Query TLV, it MUST reply with the Return Code TBA3 for MPLS echo
-   reply messages.
+   Query TLV, it MUST include Return Code TBA3 in the MPLS echo reply
+   message.
 
 5.  Example
 
@@ -799,19 +806,19 @@ Table of Contents
    R0 sends MPLS echo requests in traceroute mode with all Query Flags
    set.  The responses are:
 
-   +====+===+==========+=======+=======+============+========+========+
-   |Node|RLD|MLD_Select|MLD_HBH|MLD_I2E|PS_Supported|MLD_PSMH|RLD_PSMH|
-   +====+===+==========+=======+=======+============+========+========+
-   |R1  |20 |9         |9      |0 (not |Yes         |16      |36      |
-   |    |   |          |       |egress)|            |        |        |
-   +----+---+----------+-------+-------+------------+--------+--------+
-   |R2  |51 |9         |3      |0 (not |Yes         |8       |59      |
-   |    |   |          |       |egress)|            |        |        |
-   +----+---+----------+-------+-------+------------+--------+--------+
-   |R3  |35 |9         |9      |9      |Yes         |16      |51      |
-   +----+---+----------+-------+-------+------------+--------+--------+
+   +====+===+==============+===========+===========+============+========+========+
+   |Node|RLD|MLD_NAS_Select|MLD_NAS_HBH|MLD_NAS_I2E|PS_Supported|MLD_PSMH|RLD_PSMH|
+   +====+===+==============+===========+===========+============+========+========+
+   |R1  |20 |9             |9          |0 (not     |Yes         |16      |36      |
+   |    |   |              |           |egress)    |            |        |        |
+   +----+---+--------------+-----------+-----------+------------+--------+--------+
+   |R2  |51 |9             |3          |0 (not     |Yes         |8       |59      |
+   |    |   |              |           |egress)    |            |        |        |
+   +----+---+--------------+-----------+-----------+------------+--------+--------+
+   |R3  |35 |9             |9          |9          |Yes         |16      |51      |
+   +----+---+--------------+-----------+-----------+------------+--------+--------+
 
-               Table 3: Example MNA Capabilities Responses.
+                Table 3: Example MNA Capabilities Responses.
 
    From these responses, R0 determines:
 
@@ -881,29 +888,29 @@ Table of Contents
    IANA is requested to create a new sub-TLV registry for TLV TBA2 with
    the following initial entries:
 
-        +==========+=============================+===============+
-        | Sub-Type | Sub-TLV Name                | Reference     |
-        +==========+=============================+===============+
-        | 0        | Reserved                    | This document |
-        +----------+-----------------------------+---------------+
-        | 1        | RLD                         | This document |
-        +----------+-----------------------------+---------------+
-        | 2        | MLD_NAS                     | This document |
-        +----------+-----------------------------+---------------+
-        | 3        | Supported ISD Opcodes       | This document |
-        +----------+-----------------------------+---------------+
-        | 4        | Post-Stack MNA Capabilities | This document |
-        +----------+-----------------------------+---------------+
-        | 5        | Supported PSD Opcodes       | This document |
-        +----------+-----------------------------+---------------+
+        +==========+==============================+===============+
+        | Sub-Type | Sub-TLV Name                 | Reference     |
+        +==========+==============================+===============+
+        | 0        | Reserved                     | This document |
+        +----------+------------------------------+---------------+
+        | 1        | RLD                          | This document |
+        +----------+------------------------------+---------------+
+        | 2        | MLD_NAS                      | This document |
+        +----------+------------------------------+---------------+
+        | 3        | Supported ISD Opcodes        | This document |
+        +----------+------------------------------+---------------+
+        | 4        | Post-Stack MNA Capabilities  | This document |
+        +----------+------------------------------+---------------+
+        | 5        | Supported Post-Stack Opcodes | This document |
+        +----------+------------------------------+---------------+
 
-                 Table 5: Sub-TLV Registry for TLV TBA2.
+                  Table 5: Sub-TLV Registry for TLV TBA2.
 
 7.3.  Return Code Assignment
 
    IANA is requested to assign a new Return Code from the "Return Code"
    registry in the "Multiprotocol Label Switching (MPLS) Label Switched
-   Paths (LSPs) Ping Parameters" registry group as follows
+   Paths (LSPs) Ping Parameters" registry group as follows.
 
                +=======+===================+===============+
                | Value | Meaning           | Reference     |
