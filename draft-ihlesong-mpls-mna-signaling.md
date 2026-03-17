@@ -68,12 +68,12 @@ informative:
 
 --- abstract
 
-This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (MLD_NAS), and supported network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions.
+This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The In-Stack MNA capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (MLD_NAS), and supported In-Stack network action opcodes. The Post-Stack MNA capabilities include the maximum Post-Stack MPLS Header size (MLD_PSMH), the Readable Label Depth including the Post-Stack MPLS Header (RLD_PSMH), and supported Post-Stack network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions.
 
 --- middle
 
 # Introduction
-The MPLS Network Actions (MNA) framework {{?I-D.ietf-mpls-mna-hdr}} provides a general mechanism for encoding network actions and their data in the MPLS label stack.
+The MPLS Network Actions (MNA) framework {{?I-D.ietf-mpls-mna-fwk}} provides a general mechanism for encoding network actions and their data in the MPLS label stack.
 Network actions are encoded in Network Action Sub-stacks (NAS) that are placed within (ISD) or follow after (PSD) the MPLS label stack.
 The MNA header encoding is defined in {{?I-D.ietf-mpls-mna-hdr}}.
 To correctly construct MPLS label stacks containing network actions, the ingress LER needs to know the MNA capabilities of each node along the path.
@@ -123,7 +123,7 @@ This section defines the parameters that an LSR uses to signal its MNA capabilit
 The Readable Label Depth (RLD) is the number of LSEs an LSR can parse without performance impact {{?I-D.ietf-mpls-mna-fwk}}.
 An LSR is required to search the MPLS stack for NAS that have to be processed by the LSR.
 To that end, the network actions must be within the RLD of the node.
-For HBH-scoped network actions, the ingress LER that pushes the network actions MUST ensure that the actions are readable at each LSR on the path, i.e., that it is placed within the RLD of each node.
+For HBH-scoped network actions, the ingress LER that pushes the network actions MUST ensure that the actions are readable at each LSR on the path, i.e., that they are placed within the RLD of each node.
 
 #### Example
 
@@ -290,9 +290,9 @@ The MLD_NAS Sub-TLV reports the maximum supported NAS sizes for each scope. All 
 
 - Sub-type: 2 (MLD_NAS).
 - Length: 4 octets.
-- MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported. A value of 1 is invalid and MUST NOT be sent; receivers MUST treat it as 0.
-- MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported. A value of 1 is invalid and MUST NOT be sent; receivers MUST treat it as 0.
-- MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported. A value of 1 is invalid and MUST NOT be sent; receivers MUST treat it as 0.
+- MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported. Values of 1 and 18-255 are invalid and MUST NOT be sent; receivers MUST treat them as 0.
+- MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported. Values of 1 and 18-255 are invalid and MUST NOT be sent; receivers MUST treat them as 0.
+- MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported. Values of 1 and 18-255 are invalid and MUST NOT be sent; receivers MUST treat them as 0.
 - Reserved: MUST be set to zero on transmit and MUST be ignored on receipt.
 
 ### Supported In-Stack Opcodes Sub-TLV {#isd-opcodes}
@@ -327,7 +327,7 @@ The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-S
 
 ### Supported Post-Stack Opcodes Sub-TLV
 The Supported Post-Stack Opcodes Sub-TLV reports the Post-Stack network action opcodes supported by the responding node.
-The Post-Stack opcode space is 7 bits (128 values), identical to the In-Stack opcode in {{isd-opcodes}} but independent from it.
+The Post-Stack opcode space is 7 bits (128 values), identical to the In-Stack Opcodes Sub-TLV format in {{isd-opcodes}} but independent from it.
 For the Supported Post-Stack Opcodes Sub-TLV, the sub-type 5 (Supported Post-Stack Opcodes) is used.
 The format is identical to {{fig-opcode-tlv}}.
 
@@ -424,14 +424,14 @@ The TLV values SHOULD be assigned from the range that requires an error message 
 ## New Sub-TLV Registry
 IANA is requested to create a new sub-TLV registry for TLV TBA2 with the following initial entries:
 
-| Sub-Type | Sub-TLV Name                | Reference     |
-| -------- | --------------------------- | ------------- |
-| 0        | Reserved                    | This document |
-| 1        | RLD                         | This document |
-| 2        | MLD_NAS                     | This document |
-| 3        | Supported ISD Opcodes       | This document |
-| 4        | Post-Stack MNA Capabilities | This document |
-| 5        | Supported Post-Stack Opcodes| This document |
+| Sub-Type | Sub-TLV Name                 | Reference     |
+| -------- | ---------------------------- | ------------- |
+| 0        | Reserved                     | This document |
+| 1        | RLD                          | This document |
+| 2        | MLD_NAS                      | This document |
+| 3        | Supported ISD Opcodes        | This document |
+| 4        | Post-Stack MNA Capabilities  | This document |
+| 5        | Supported Post-Stack Opcodes | This document |
 {: #table_iana2 title="Sub-TLV Registry for TLV TBA2."}
 
 ## Return Code Assignment
