@@ -11,24 +11,25 @@
 <meta content="
        This document defines a mechanism for discovering MPLS Network Actions (MNA) capabilities along a Label Switched Path (LSP) using the LSP Ping echo request/reply mechanism defined in RFC 8029. The In-Stack MNA capabilities include the Readable Label Depth (RLD), the maximum sizes of differently scoped Network Action Sub-stacks (MLD_NAS), and supported In-Stack network action opcodes. The Post-Stack MNA capabilities include the maximum Post-Stack MPLS Header size (MLD_PSMH), the Readable Label Depth including the Post-Stack MPLS Header (RLD_PSMH), and supported Post-Stack network action opcodes. This mechanism allows the ingress Label Edge Router (LER) to discover MNA capabilities of each transit and egress node on the path, enabling correct construction of MPLS label stacks containing MNA network actions. 
     " name="description">
-<meta content="xml2rfc 3.32.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="signaling" name="keyword">
 <meta content="mpls" name="keyword">
 <meta content="mna" name="keyword">
 <meta content="draft-ihlesong-mpls-mna-signaling-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.32.0
-    Python 3.12.12
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.4
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
-    requests 2.32.5
-    wcwidth 0.6.0
+    requests 2.33.1
+    wcwidth 0.8.1
 -->
 <link href="draft-ihlesong-mpls-mna-signaling.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -295,16 +296,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -324,10 +328,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -338,59 +342,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -428,26 +432,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -463,20 +466,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -512,9 +517,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -524,17 +529,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -584,25 +591,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -622,13 +621,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -639,18 +631,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -709,9 +699,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -801,23 +791,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -828,19 +822,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -861,54 +857,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -927,26 +923,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -962,12 +958,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1029,17 +1026,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1049,11 +1048,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">SIG</td>
-<td class="right">March 2026</td>
+<td class="right">June 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Ihle, et al.</td>
-<td class="center">Expires 18 September 2026</td>
+<td class="center">Expires 28 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1065,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ihlesong-mpls-mna-signaling-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-17" class="published">17 March 2026</time>
+<time datetime="2026-06-26" class="published">26 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-18">18 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-28">28 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1129,7 +1128,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 18 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 28 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1217,19 +1216,16 @@ svg :is([fill="white"], [fill^="#fff"]) {
                 <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-mna-capabilities-response-t" class="internal xref">MNA Capabilities Response TLV</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.1">
-                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-rld-sub-tlv" class="internal xref">RLD Sub-TLV</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-rld-and-mld_nas-sub-tlv" class="internal xref">RLD and MLD_NAS Sub-TLV</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.2">
-                    <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-mld_nas-sub-tlv" class="internal xref">MLD_NAS Sub-TLV</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-supported-in-stack-opcodes-" class="internal xref">Supported In-Stack Opcodes Sub-TLV</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.3">
-                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-supported-in-stack-opcodes-" class="internal xref">Supported In-Stack Opcodes Sub-TLV</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-post-stack-mna-capabilities-" class="internal xref">Post-Stack MNA Capabilities Sub-TLV</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.4">
-                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-post-stack-mna-capabilities-" class="internal xref">Post-Stack MNA Capabilities Sub-TLV</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.5">
-                    <p id="section-toc.1-1.3.2.2.2.5.1"><a href="#section-3.2.5" class="auto internal xref">3.2.5</a>.  <a href="#name-supported-post-stack-opcode" class="internal xref">Supported Post-Stack Opcodes Sub-TLV</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-supported-post-stack-opcode" class="internal xref">Supported Post-Stack Opcodes Sub-TLV</a></p>
 </li>
                 </ul>
 </li>
@@ -1598,7 +1594,7 @@ In this example, a select-scoped NAS has a maximum size of 4 LSEs, a hop-by-hop-
           <h4 id="name-supported-in-stack-network-">
 <a href="#section-2.1.3" class="section-number selfRef">2.1.3. </a><a href="#name-supported-in-stack-network-" class="section-name selfRef">Supported In-Stack Network Action Opcodes</a>
           </h4>
-<p id="section-2.1.3-1">An LSR <span class="bcp14">MUST</span> signal the In-Stack network action opcodes it supports.
+<p id="section-2.1.3-1">When an LSR reports its In-Stack capabilities, it <span class="bcp14">MUST</span> include all In-Stack network action opcodes it supports.
 If a network action opcode is not signaled, it is assumed that this opcode is not supported by the node.<a href="#section-2.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1656,7 +1652,7 @@ When the RLD_PSMH is signaled, the ingress LER <span class="bcp14">MUST</span> e
 <a href="#section-2.2.4" class="section-number selfRef">2.2.4. </a><a href="#name-supported-post-stack-networ" class="section-name selfRef">Supported Post-Stack Network Action Opcodes</a>
           </h4>
 <p id="section-2.2.4-1">The Post-Stack network action opcode space (MNA-PS-OP) is 7 bits, supporting 128 opcodes <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.
-A node <span class="bcp14">MUST</span> signal the Post-Stack network action opcodes it supports.
+When a node reports its Post-Stack capabilities, it <span class="bcp14">MUST</span> include all Post-Stack network action opcodes it supports.
 The Post-Stack opcode space is separate from the In-Stack opcode space; a node may support an opcode in-stack, post-stack, or both.<a href="#section-2.2.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1664,7 +1660,7 @@ The Post-Stack opcode space is separate from the In-Stack opcode space; a node m
 </div>
 </section>
 </div>
-<div id="lsp-ping-mna-operation-overview">
+<div id="overview">
 <section id="section-3">
       <h2 id="name-lsp-ping-mna-operation-over">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-lsp-ping-mna-operation-over" class="section-name selfRef">LSP Ping MNA Operation Overview</a>
@@ -1751,23 +1747,23 @@ Its format is as follows:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
           <tbody>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0</td>
-              <td class="text-left" rowspan="1" colspan="1">QUERY_RLD</td>
-              <td class="text-left" rowspan="1" colspan="1">Query the Readable Label Depth</td>
+              <td class="text-left" rowspan="1" colspan="1">QUERY_RLD_MLD_NAS</td>
+              <td class="text-left" rowspan="1" colspan="1">Query the Readable Label Depth and NAS Maximum Label Depth (scopes)</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">1</td>
-              <td class="text-left" rowspan="1" colspan="1">QUERY_MLD_NAS</td>
-              <td class="text-left" rowspan="1" colspan="1">Query NAS Maximum Label Depth (scopes)</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">2</td>
               <td class="text-left" rowspan="1" colspan="1">QUERY_ISD_OPCODES</td>
               <td class="text-left" rowspan="1" colspan="1">Query supported network action opcodes for ISD</td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">3</td>
+              <td class="text-left" rowspan="1" colspan="1">2</td>
               <td class="text-left" rowspan="1" colspan="1">QUERY_PS_MNA</td>
-              <td class="text-left" rowspan="1" colspan="1">Query Post-Stack MNA capabilities (support, MLD_PSMH, RLD_PSMH, PS opcodes)</td>
+              <td class="text-left" rowspan="1" colspan="1">Query Post-Stack MNA capabilities (support, MLD_PSMH, RLD_PSMH)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">3</td>
+              <td class="text-left" rowspan="1" colspan="1">QUERY_PS_OPCODES</td>
+              <td class="text-left" rowspan="1" colspan="1">Query supported network action opcodes for PSD</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">4-7</td>
@@ -1821,32 +1817,32 @@ Its format is as follows:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.2-5">The Value field consists of one or more sub-TLVs as defined in the following sections. The responding node <span class="bcp14">MUST</span> include sub-TLVs corresponding to the flags set in the Query TLV. If no flags were set in the query, the responding node <span class="bcp14">SHOULD</span> include all sub-TLVs for which it has information.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
-<div id="rld-sub-tlv">
+<div id="rld-and-mldnas-sub-tlv">
 <section id="section-3.2.1">
-          <h4 id="name-rld-sub-tlv">
-<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-rld-sub-tlv" class="section-name selfRef">RLD Sub-TLV</a>
+          <h4 id="name-rld-and-mld_nas-sub-tlv">
+<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-rld-and-mld_nas-sub-tlv" class="section-name selfRef">RLD and MLD_NAS Sub-TLV</a>
           </h4>
-<p id="section-3.2.1-1">The RLD Sub-TLV reports the Readable Label Depth of the responding node.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
-<span id="name-rld-sub-tlv-2"></span><div id="fig-rld-tlv">
+<p id="section-3.2.1-1">The RLD and MLD_NAS Sub-TLV reports the Readable Label Depth of the responding node together with the maximum supported NAS sizes for each scope.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
+<span id="name-rld-and-mld_nas-sub-tlv-2"></span><div id="fig-rld-mld-tlv">
 <figure id="figure-5">
             <div class="alignLeft art-text artwork" id="section-3.2.1-2.1">
 <pre>
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      RLD Sub-type (1)         |         Length = 4            |
+| RLD &amp; MLD_NAS Sub-type (1)    |         Length = 4            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|   RLD Value   |                   Reserved                    |
+|   RLD Value   | MLD_NAS_Select| MLD_NAS_HBH   | MLD_NAS_I2E   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 </pre>
 </div>
 <figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
-<a href="#name-rld-sub-tlv-2" class="selfRef">RLD Sub-TLV.</a>
+<a href="#name-rld-and-mld_nas-sub-tlv-2" class="selfRef">RLD and MLD_NAS Sub-TLV.</a>
             </figcaption></figure>
 </div>
 <ul class="normal">
 <li class="normal" id="section-3.2.1-3.1">
-              <p id="section-3.2.1-3.1.1">Sub-type: 1 (RLD).<a href="#section-3.2.1-3.1.1" class="pilcrow">¶</a></p>
+              <p id="section-3.2.1-3.1.1">Sub-type: 1 (RLD and MLD_NAS).<a href="#section-3.2.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.2.1-3.2">
               <p id="section-3.2.1-3.2.1">Length: 4 octets.<a href="#section-3.2.1-3.2.1" class="pilcrow">¶</a></p>
@@ -1855,70 +1851,31 @@ Its format is as follows:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
               <p id="section-3.2.1-3.3.1">RLD Value: An 8-bit unsigned integer indicating the number of LSEs the node can parse without performance impact. A value of 0 indicates that the node did not provide an RLD value.<a href="#section-3.2.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.2.1-3.4">
-              <p id="section-3.2.1-3.4.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.1-3.4.1" class="pilcrow">¶</a></p>
+              <p id="section-3.2.1-3.4.1">MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported. Values of 1 and 18-255 are invalid and <span class="bcp14">MUST NOT</span> be sent; receivers <span class="bcp14">MUST</span> treat them as 0.<a href="#section-3.2.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.1-3.5">
+              <p id="section-3.2.1-3.5.1">MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported. Values of 1 and 18-255 are invalid and <span class="bcp14">MUST NOT</span> be sent; receivers <span class="bcp14">MUST</span> treat them as 0.<a href="#section-3.2.1-3.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.2.1-3.6">
+              <p id="section-3.2.1-3.6.1">MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported. Values of 1 and 18-255 are invalid and <span class="bcp14">MUST NOT</span> be sent; receivers <span class="bcp14">MUST</span> treat them as 0.<a href="#section-3.2.1-3.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
 </div>
-<div id="mldnas-sub-tlv">
+<div id="isd-opcodes">
 <section id="section-3.2.2">
-          <h4 id="name-mld_nas-sub-tlv">
-<a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-mld_nas-sub-tlv" class="section-name selfRef">MLD_NAS Sub-TLV</a>
+          <h4 id="name-supported-in-stack-opcodes-">
+<a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-supported-in-stack-opcodes-" class="section-name selfRef">Supported In-Stack Opcodes Sub-TLV</a>
           </h4>
-<p id="section-3.2.2-1">The MLD_NAS Sub-TLV reports the maximum supported NAS sizes for each scope. All three scope values are encoded in a single sub-TLV.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
-<span id="name-mld_nas-sub-tlv-2"></span><div id="fig-mld-tlv">
+<p id="section-3.2.2-1">The Supported In-Stack Opcodes Sub-TLV reports the In-Stack network action opcodes supported by the responding node using a bitmap encoding. The MNA opcode space is 7 bits, supporting 128 opcodes. Each bit in the bitmap corresponds to one opcode value.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
+<span id="name-supported-in-stack-opcodes-s"></span><div id="fig-opcode-tlv">
 <figure id="figure-6">
             <div class="alignLeft art-text artwork" id="section-3.2.2-2.1">
 <pre>
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|    MLD_NAS Sub-type (2)       |         Length = 4            |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| MLD_NAS_Select| MLD_NAS_HBH   | MLD_NAS_I2E   |  Reserved     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-</pre>
-</div>
-<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
-<a href="#name-mld_nas-sub-tlv-2" class="selfRef">MLD_NAS Sub-TLV.</a>
-            </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-3.2.2-3.1">
-              <p id="section-3.2.2-3.1.1">Sub-type: 2 (MLD_NAS).<a href="#section-3.2.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.2.2-3.2">
-              <p id="section-3.2.2-3.2.1">Length: 4 octets.<a href="#section-3.2.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.2.2-3.3">
-              <p id="section-3.2.2-3.3.1">MLD_NAS_Select: An 8-bit unsigned integer indicating the maximum number of LSEs in a select-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that select-scoped NAS are not supported. Values of 1 and 18-255 are invalid and <span class="bcp14">MUST NOT</span> be sent; receivers <span class="bcp14">MUST</span> treat them as 0.<a href="#section-3.2.2-3.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.2.2-3.4">
-              <p id="section-3.2.2-3.4.1">MLD_NAS_HBH: An 8-bit unsigned integer indicating the maximum number of LSEs in an HBH-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that HBH-scoped NAS are not supported. Values of 1 and 18-255 are invalid and <span class="bcp14">MUST NOT</span> be sent; receivers <span class="bcp14">MUST</span> treat them as 0.<a href="#section-3.2.2-3.4.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.2.2-3.5">
-              <p id="section-3.2.2-3.5.1">MLD_NAS_I2E: An 8-bit unsigned integer indicating the maximum number of LSEs in an I2E-scoped NAS that the node can process. Valid range: 2-17. A value of 0 indicates that I2E-scoped NAS are not supported. Values of 1 and 18-255 are invalid and <span class="bcp14">MUST NOT</span> be sent; receivers <span class="bcp14">MUST</span> treat them as 0.<a href="#section-3.2.2-3.5.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.2.2-3.6">
-              <p id="section-3.2.2-3.6.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.2-3.6.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</section>
-</div>
-<div id="isd-opcodes">
-<section id="section-3.2.3">
-          <h4 id="name-supported-in-stack-opcodes-">
-<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-supported-in-stack-opcodes-" class="section-name selfRef">Supported In-Stack Opcodes Sub-TLV</a>
-          </h4>
-<p id="section-3.2.3-1">The Supported In-Stack Opcodes Sub-TLV reports the In-Stack network action opcodes supported by the responding node using a bitmap encoding. The MNA opcode space is 7 bits, supporting 128 opcodes. Each bit in the bitmap corresponds to one opcode value.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
-<span id="name-supported-in-stack-opcodes-s"></span><div id="fig-opcode-tlv">
-<figure id="figure-7">
-            <div class="alignLeft art-text artwork" id="section-3.2.3-2.1">
-<pre>
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Opcodes Sub-type (3)         |         Length = 16           |
+|  Opcodes Sub-type (2)         |         Length = 16           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |             Supported Opcodes bitmap (bits 0-31)              |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1930,85 +1887,85 @@ Its format is as follows:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 </pre>
 </div>
-<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
 <a href="#name-supported-in-stack-opcodes-s" class="selfRef">Supported In-Stack Opcodes Sub-TLV.</a>
             </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-3.2.3-3.1">
-              <p id="section-3.2.3-3.1.1">Sub-type: 3 (Supported ISD Opcodes).<a href="#section-3.2.3-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3.2.2-3.1">
+              <p id="section-3.2.2-3.1.1">Sub-type: 2 (Supported In-Stack Opcodes).<a href="#section-3.2.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.3-3.2">
-              <p id="section-3.2.3-3.2.1">Length: 16 octets.<a href="#section-3.2.3-3.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.2.2-3.2">
+              <p id="section-3.2.2-3.2.1">Length: 16 octets.<a href="#section-3.2.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.3-3.3">
-              <p id="section-3.2.3-3.3.1">Supported ISD Opcodes bitmap: A 128-bit bitmap where bit N (counting from bit 0 as the most significant bit of the first octet) corresponds to opcode value N. If bit N is set to 1, the node supports opcode N. If bit N is set to 0, the node does not support opcode N.<a href="#section-3.2.3-3.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.2.2-3.3">
+              <p id="section-3.2.2-3.3.1">Supported In-Stack Opcodes bitmap: A 128-bit bitmap where bit N (counting from bit 0 as the most significant bit of the first octet) corresponds to opcode value N. If bit N is set to 1, the node supports opcode N. If bit N is set to 0, the node does not support opcode N.<a href="#section-3.2.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
 </div>
 <div id="post-stack-mna-capabilities-sub-tlv">
-<section id="section-3.2.4">
+<section id="section-3.2.3">
           <h4 id="name-post-stack-mna-capabilities-">
-<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-post-stack-mna-capabilities-" class="section-name selfRef">Post-Stack MNA Capabilities Sub-TLV</a>
+<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-post-stack-mna-capabilities-" class="section-name selfRef">Post-Stack MNA Capabilities Sub-TLV</a>
           </h4>
-<p id="section-3.2.4-1">The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-Stack MNA processing, the maximum PSMH size, and the RLD including PSMH.<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.3-1">The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-Stack MNA processing, the maximum PSMH size, and the RLD including PSMH.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
 <span id="name-post-stack-mna-capabilities-s"></span><div id="fig-psd">
-<figure id="figure-8">
-            <div class="alignLeft art-text artwork" id="section-3.2.4-2.1">
+<figure id="figure-7">
+            <div class="alignLeft art-text artwork" id="section-3.2.3-2.1">
 <pre>
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|    PS MNA Cap. Sub-type (4)   |         Length = 4            |
+|    PS MNA Cap. Sub-type (3)   |         Length = 4            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |   PS Flags    | MLD_PSMH      |  RLD_PSMH    |  Reserved      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 </pre>
 </div>
-<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
 <a href="#name-post-stack-mna-capabilities-s" class="selfRef">Post-Stack MNA Capabilities Sub-TLV.</a>
             </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-3.2.4-3.1">
-              <p id="section-3.2.4-3.1.1">Sub-type: 4 (Post-Stack MNA Capabilities).<a href="#section-3.2.4-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3.2.3-3.1">
+              <p id="section-3.2.3-3.1.1">Sub-type: 3 (Post-Stack MNA Capabilities).<a href="#section-3.2.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.4-3.2">
-              <p id="section-3.2.4-3.2.1">Length: 4 octets.<a href="#section-3.2.4-3.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.2.3-3.2">
+              <p id="section-3.2.3-3.2.1">Length: 4 octets.<a href="#section-3.2.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.4-3.3">
-              <p id="section-3.2.4-3.3.1">PS Flags: An 8-bit field.<a href="#section-3.2.4-3.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.2.3-3.3">
+              <p id="section-3.2.3-3.3.1">PS Flags: An 8-bit field.<a href="#section-3.2.3-3.3.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.4-3.3.2.1">
-                  <p id="section-3.2.4-3.3.2.1.1">Bit 0: PS_SUPPORTED. If set to 1, the node supports Post-Stack MNA processing as defined in <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>. If set to 0, Post-Stack MNA is not supported and the remaining fields in this sub-TLV <span class="bcp14">SHOULD</span> be ignored.<a href="#section-3.2.4-3.3.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3.2.3-3.3.2.1">
+                  <p id="section-3.2.3-3.3.2.1.1">Bit 0: PS_SUPPORTED. If set to 1, the node supports Post-Stack MNA processing as defined in <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>. If set to 0, Post-Stack MNA is not supported and the remaining fields in this sub-TLV <span class="bcp14">SHOULD</span> be ignored.<a href="#section-3.2.3-3.3.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.4-3.3.2.2">
-                  <p id="section-3.2.4-3.3.2.2.1">Bits 1-7: Reserved. <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.4-3.3.2.2.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-3.2.3-3.3.2.2">
+                  <p id="section-3.2.3-3.3.2.2.1">Bits 1-7: Reserved. <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.3-3.3.2.2.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </li>
-            <li class="normal" id="section-3.2.4-3.4">
-              <p id="section-3.2.4-3.4.1">MLD_PSMH: An 8-bit unsigned integer indicating the maximum Post-Stack MPLS Header length (in 4-octet units, excluding the PSMH type header) that the node can process. A value of 0 indicates that the node did not provide this value. The valid range corresponds to the 8-bit PSMH-LEN field defined in <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.<a href="#section-3.2.4-3.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.2.3-3.4">
+              <p id="section-3.2.3-3.4.1">MLD_PSMH: An 8-bit unsigned integer indicating the maximum Post-Stack MPLS Header length (in 4-octet units, excluding the PSMH type header) that the node can process. A value of 0 indicates that the node did not provide this value. The valid range corresponds to the 8-bit PSMH-LEN field defined in <span>[<a href="#I-D.ietf-mpls-mna-ps-hdr" class="cite xref">I-D.ietf-mpls-mna-ps-hdr</a>]</span>.<a href="#section-3.2.3-3.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.4-3.5">
-              <p id="section-3.2.4-3.5.1">RLD_PSMH: An 8-bit unsigned integer indicating the Readable Label Depth including the Post-Stack MPLS Header, in 4-octet units. A value of 0 indicates that the node did not provide this value.<a href="#section-3.2.4-3.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.2.3-3.5">
+              <p id="section-3.2.3-3.5.1">RLD_PSMH: An 8-bit unsigned integer indicating the Readable Label Depth including the Post-Stack MPLS Header, in 4-octet units. A value of 0 indicates that the node did not provide this value.<a href="#section-3.2.3-3.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.4-3.6">
-              <p id="section-3.2.4-3.6.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.4-3.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.2.3-3.6">
+              <p id="section-3.2.3-3.6.1">Reserved: <span class="bcp14">MUST</span> be set to zero on transmit and <span class="bcp14">MUST</span> be ignored on receipt.<a href="#section-3.2.3-3.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
 </div>
 <div id="supported-post-stack-opcodes-sub-tlv">
-<section id="section-3.2.5">
+<section id="section-3.2.4">
           <h4 id="name-supported-post-stack-opcode">
-<a href="#section-3.2.5" class="section-number selfRef">3.2.5. </a><a href="#name-supported-post-stack-opcode" class="section-name selfRef">Supported Post-Stack Opcodes Sub-TLV</a>
+<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-supported-post-stack-opcode" class="section-name selfRef">Supported Post-Stack Opcodes Sub-TLV</a>
           </h4>
-<p id="section-3.2.5-1">The Supported Post-Stack Opcodes Sub-TLV reports the Post-Stack network action opcodes supported by the responding node.
-The Post-Stack opcode space is 7 bits (128 values), identical to the In-Stack Opcodes Sub-TLV format in <a href="#isd-opcodes" class="auto internal xref">Section 3.2.3</a> but independent from it.
-For the Supported Post-Stack Opcodes Sub-TLV, the sub-type 5 (Supported Post-Stack Opcodes) is used.
-The format is identical to <a href="#fig-opcode-tlv" class="auto internal xref">Figure 7</a>.<a href="#section-3.2.5-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.4-1">The Supported Post-Stack Opcodes Sub-TLV reports the Post-Stack network action opcodes supported by the responding node.
+The Post-Stack opcode space is 7 bits (128 values), identical to the In-Stack Opcodes Sub-TLV format in <a href="#isd-opcodes" class="auto internal xref">Section 3.2.2</a> but independent from it.
+For the Supported Post-Stack Opcodes Sub-TLV, the sub-type 4 (Supported Post-Stack Opcodes) is used.
+The format is identical to <a href="#fig-opcode-tlv" class="auto internal xref">Figure 6</a>.<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2031,7 +1988,7 @@ In traceroute mode, the ingress LER sends echo requests with TTL values from 1 t
 Traceroute mode <span class="bcp14">SHOULD</span> be used when HBH-scoped network actions are planned, as the ingress LER needs the capabilities of every node to correctly place NAS copies within each node's RLD.
 In ping mode, a single echo request with TTL set to 255 is sent.
 This is sufficient when only I2E-scoped network actions are planned, as only the egress node's capabilities are needed.
-After collecting responses, the ingress LER computes path-wide constraints as described in Section 3.
+After collecting responses, the ingress LER computes path-wide constraints as described in <a href="#overview" class="auto internal xref">Section 3</a>.
 The ingress LER <span class="bcp14">MUST</span> ensure the following when constructing MPLS stacks with MNA:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.1-2">
 <li id="section-4.1-2.1">
@@ -2067,15 +2024,24 @@ The ingress LER <span class="bcp14">MUST</span> ensure the following when constr
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-responding-node" class="section-name selfRef">Responding Node</a>
         </h3>
 <p id="section-4.2-1">A node that supports MNA and receives an MPLS echo request containing the MNA Capabilities Query TLV <span class="bcp14">MUST</span> respond with an MPLS echo reply containing the MNA Capabilities Response TLV.
-The responding node <span class="bcp14">MUST</span> include sub-TLVs corresponding to the flags set in the query.
-If the QUERY_RLD flag is set, the RLD Sub-TLV <span class="bcp14">MUST</span> be included.
-If the QUERY_MLD_NAS flag is set, the MLD_NAS Sub-TLV <span class="bcp14">MUST</span> be included.
-If the QUERY_ISD_OPCODES flag is set, the Supported In-Stack Opcodes Sub-TLV <span class="bcp14">MUST</span> be included.
-If no Query Flags are set (all zero), the responding node <span class="bcp14">SHOULD</span> include all available sub-TLVs.
+The responding node <span class="bcp14">MUST</span> include sub-TLVs corresponding to the flags set in the query:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2-2.1">
+            <p id="section-4.2-2.1.1">If the QUERY_RLD_MLD_NAS flag is set, the RLD and MLD_NAS Sub-TLV <span class="bcp14">MUST</span> be included.<a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1">If the QUERY_ISD_OPCODES flag is set, the Supported In-Stack Opcodes Sub-TLV <span class="bcp14">MUST</span> be included.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.3">
+            <p id="section-4.2-2.3.1">If the QUERY_PS_MNA flag is set, the Post-Stack MNA Capabilities Sub-TLV (sub-type 3) <span class="bcp14">MUST</span> be included.<a href="#section-4.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.4">
+            <p id="section-4.2-2.4.1">If the node supports Post-Stack MNA and the QUERY_PS_OPCODES flag is set, the Supported Post-Stack Opcodes Sub-TLV (sub-type 4) <span class="bcp14">MUST</span> also be included.<a href="#section-4.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.2-3">If no Query Flags are set (all zero), the responding node <span class="bcp14">SHOULD</span> include all available sub-TLVs.
 The reported capabilities are those of the node as a whole.
-If capabilities vary per interface, the node <span class="bcp14">SHOULD</span> report the capabilities applicable to the interface on which the echo request was received.
-If the QUERY_PS_MNA flag is set, the Post-Stack MNA Capabilities Sub-TLV (sub-type 4) <span class="bcp14">MUST</span> be included.
-If the node supports Post-Stack MNA and the QUERY_PS_MNA flag is set, the Supported Post-Stack Opcodes Sub-TLV (sub-type 5) <span class="bcp14">MUST</span> also be included.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+If capabilities vary per interface, the node <span class="bcp14">SHOULD</span> report the capabilities applicable to the interface on which the echo request was received.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="mna-incapable-nodes">
@@ -2266,26 +2232,21 @@ The TLV values <span class="bcp14">SHOULD</span> be assigned from the range that
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">1</td>
-              <td class="text-left" rowspan="1" colspan="1">RLD</td>
+              <td class="text-left" rowspan="1" colspan="1">RLD and MLD_NAS</td>
               <td class="text-left" rowspan="1" colspan="1">This document</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">2</td>
-              <td class="text-left" rowspan="1" colspan="1">MLD_NAS</td>
+              <td class="text-left" rowspan="1" colspan="1">Supported In-Stack Opcodes</td>
               <td class="text-left" rowspan="1" colspan="1">This document</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">3</td>
-              <td class="text-left" rowspan="1" colspan="1">Supported ISD Opcodes</td>
-              <td class="text-left" rowspan="1" colspan="1">This document</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">4</td>
               <td class="text-left" rowspan="1" colspan="1">Post-Stack MNA Capabilities</td>
               <td class="text-left" rowspan="1" colspan="1">This document</td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">5</td>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
               <td class="text-left" rowspan="1" colspan="1">Supported Post-Stack Opcodes</td>
               <td class="text-left" rowspan="1" colspan="1">This document</td>
             </tr>
@@ -2338,9 +2299,21 @@ Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group as 
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
+<dt id="I-D.ietf-mpls-mna-hdr">[I-D.ietf-mpls-mna-hdr]</dt>
+        <dd>
+<span class="refAuthor">Rajamanickam, J.</span>, <span class="refAuthor">Gandhi, R.</span>, <span class="refAuthor">Zigler, R.</span>, <span class="refAuthor">Song, H.</span>, and <span class="refAuthor">K. Kompella</span>, <span class="refTitle">"MPLS Network Action (MNA) Sub-Stack Specification including In-Stack Network Actions and Data"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-hdr-21</span>, <time datetime="2026-02-24" class="refDate">24 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-hdr-21">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-hdr-21</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-mpls-mna-ps-hdr">[I-D.ietf-mpls-mna-ps-hdr]</dt>
+        <dd>
+<span class="refAuthor">Rajamanickam, J.</span>, <span class="refAuthor">Gandhi, R.</span>, <span class="refAuthor">Zigler, R.</span>, <span class="refAuthor">Dong, J.</span>, and <span class="refAuthor">J. Bhattacharya</span>, <span class="refTitle">"Post-Stack MPLS Network Action (MNA) Header Specification"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-ps-hdr-09</span>, <time datetime="2026-06-23" class="refDate">23 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-ps-hdr-09">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-ps-hdr-09</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="rfc8029">[rfc8029]</dt>
+        <dd>
+<span class="refAuthor">Kompella, K.</span>, <span class="refAuthor">Swallow, G.</span>, <span class="refAuthor">Pignataro, C., Ed.</span>, <span class="refAuthor">Kumar, N.</span>, <span class="refAuthor">Aldrin, S.</span>, and <span class="refAuthor">M. Chen</span>, <span class="refTitle">"Detecting Multiprotocol Label Switched (MPLS) Data-Plane Failures"</span>, <span class="seriesInfo">RFC 8029</span>, <span class="seriesInfo">DOI 10.17487/RFC8029</span>, <time datetime="2017-03" class="refDate">March 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8029">https://www.rfc-editor.org/rfc/rfc8029</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
       <dd>
@@ -2359,14 +2332,6 @@ Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group as 
         <dd>
 <span class="refAuthor">Andersson, L.</span>, <span class="refAuthor">Bryant, S.</span>, <span class="refAuthor">Bocci, M.</span>, and <span class="refAuthor">T. Li</span>, <span class="refTitle">"MPLS Network Actions (MNA) Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-fwk-15</span>, <time datetime="2024-12-27" class="refDate">27 December 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-fwk-15">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-fwk-15</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="I-D.ietf-mpls-mna-hdr">[I-D.ietf-mpls-mna-hdr]</dt>
-        <dd>
-<span class="refAuthor">Rajamanickam, J.</span>, <span class="refAuthor">Gandhi, R.</span>, <span class="refAuthor">Zigler, R.</span>, <span class="refAuthor">Song, H.</span>, and <span class="refAuthor">K. Kompella</span>, <span class="refTitle">"MPLS Network Action (MNA) Sub-Stack Specification including In-Stack Network Actions and Data"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-hdr-21</span>, <time datetime="2026-02-24" class="refDate">24 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-hdr-21">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-hdr-21</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="I-D.ietf-mpls-mna-ps-hdr">[I-D.ietf-mpls-mna-ps-hdr]</dt>
-        <dd>
-<span class="refAuthor">Rajamanickam, J.</span>, <span class="refAuthor">Gandhi, R.</span>, <span class="refAuthor">Zigler, R.</span>, <span class="refAuthor">Dong, J.</span>, and <span class="refAuthor">J. Bhattacharya</span>, <span class="refTitle">"Post-Stack MPLS Network Action (MNA) Solution"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-ps-hdr-07</span>, <time datetime="2026-02-24" class="refDate">24 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-ps-hdr-07">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-ps-hdr-07</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="I-D.ietf-mpls-mna-usecases">[I-D.ietf-mpls-mna-usecases]</dt>
         <dd>
 <span class="refAuthor">Saad, T.</span>, <span class="refAuthor">Makhijani, K.</span>, <span class="refAuthor">Song, H.</span>, and <span class="refAuthor">G. Mirsky</span>, <span class="refTitle">"Use Cases for MPLS Network Action Indicators and MPLS Ancillary Data"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mpls-mna-usecases-15</span>, <time datetime="2024-09-23" class="refDate">23 September 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-usecases-15">https://datatracker.ietf.org/doc/html/draft-ietf-mpls-mna-usecases-15</a>&gt;</span>. </dd>
@@ -2374,10 +2339,6 @@ Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group as 
 <dt id="IhMe25">[IhMe25]</dt>
         <dd>
 <span class="refAuthor">Ihle, F.</span> and <span class="refAuthor">M. Menth</span>, <span class="refTitle">"MPLS Network Actions; Technological Overview and P4-Based Implementation on a High-Speed Switching ASIC"</span>, <span class="seriesInfo">DOI 10.1109/OJCOMS.2025.3557082</span>, <time datetime="2025-04-02" class="refDate">2 April 2025</time>, <span>&lt;<a href="https://ieeexplore.ieee.org/document/10947349">https://ieeexplore.ieee.org/document/10947349</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="rfc8029">[rfc8029]</dt>
-        <dd>
-<span class="refAuthor">Kompella, K.</span>, <span class="refAuthor">Swallow, G.</span>, <span class="refAuthor">Pignataro, C., Ed.</span>, <span class="refAuthor">Kumar, N.</span>, <span class="refAuthor">Aldrin, S.</span>, and <span class="refAuthor">M. Chen</span>, <span class="refTitle">"Detecting Multiprotocol Label Switched (MPLS) Data-Plane Failures"</span>, <span class="seriesInfo">RFC 8029</span>, <span class="seriesInfo">DOI 10.17487/RFC8029</span>, <time datetime="2017-03" class="refDate">March 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8029">https://www.rfc-editor.org/rfc/rfc8029</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="rfc9789">[rfc9789]</dt>
       <dd>
