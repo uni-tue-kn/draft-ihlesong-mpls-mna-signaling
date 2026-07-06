@@ -73,9 +73,9 @@ This document defines a mechanism for discovering MPLS Network Actions (MNA) cap
 --- middle
 
 # Introduction
-The MPLS Network Actions (MNA) framework {{?I-D.ietf-mpls-mna-fwk}} provides a general mechanism for encoding network actions and their data in the MPLS label stack.
+The MPLS Network Actions (MNA) framework {{?rfc9789}} provides a general mechanism for encoding network actions and their data in the MPLS label stack.
 Network actions are encoded in Network Action Sub-stacks (NAS) that are placed within (ISD) or follow after (PSD) the MPLS label stack.
-The MNA header encoding is defined in {{!I-D.ietf-mpls-mna-hdr}}.
+The MNA header encoding is defined in {{!rfc9994}}.
 To correctly construct MPLS label stacks containing network actions, the ingress LER needs to know the MNA capabilities of each node along the path.
 For Post-Stack MNA, the ingress LER additionally needs to discover whether nodes support Post-Stack MPLS Headers and what Post-Stack network actions they can process, as required by Section 5.3 of {{!I-D.ietf-mpls-mna-ps-hdr}}.
 These capabilities include:
@@ -92,21 +92,26 @@ These capabilities include:
 
 This document defines new TLVs for the MPLS echo request/reply messages {{!rfc8029}} to query and report MNA capabilities. The mechanism supports both "ping" mode (querying only the egress node) and "traceroute" mode (querying all nodes along the path).
 
+MNA capabilities could alternatively be advertised through routing protocols, similar to the advertisement of the Entropy Readable Label Depth (ERLD) in IS-IS {{?rfc9088}} and OSPF {{?rfc9089}}, or through BGP-LS {{?I-D.chen-lsr-mpls-mna-capability}}.
+However, the full MNA capability set, i.e., supported opcodes, per-scope NAS size limits, and Post-Stack parameters, is too voluminous to flood through the IGP to all nodes in a domain, most of which never use it.
+This document therefore uses LSP Ping to collect capabilities on demand, only for the specific path on which the ingress LER intends to use MNA, and verified against the actual forwarding path in the data plane.
+The relationship between MNA capability discovery and path selection is discussed in {{path-selection}}.
+
 ## Terminology
 
 {::boilerplate bcp14-tagged}
 
 ### Abbreviations
-This document makes use of the terms defined in {{!I-D.ietf-mpls-mna-hdr}} and in {{?I-D.ietf-mpls-mna-fwk}}.
+This document makes use of the terms defined in {{!rfc9994}} and in {{?rfc9789}}.
 
 | Abbreviation | Name                     | Description                                                                              | Reference                     |
 | ------------ | ------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------- |
 | NAS          | Network Action Sub-stack | A stack of related LSEs in the MPLS stack containing network actions and ancillary data. | {{?rfc9789}}                  |
-| RLD          | Readable Label Depth     | The number of LSEs a node can parse.                                                     | {{!I-D.ietf-mpls-mna-hdr}}    |
+| RLD          | Readable Label Depth     | The number of LSEs a node can parse.                                                     | {{!rfc9994}}    |
 | MLD_NAS      | NAS Maximum Label Depth  | The maximum number of LSEs in a NAS that a node can process, defined per scope.          | This document                 |
 | PSMH         | Post-Stack MPLS Header   | The header after the BOS carrying post-stack network actions and ancillary data.         | {{!I-D.ietf-mpls-mna-ps-hdr}} |
 | PSD          | Post-Stack Data          | Network actions and data encoded after the MPLS label stack.                             | {{!I-D.ietf-mpls-mna-ps-hdr}} |
-| ISD          | In-Stack Data            | Network actions and data encoded within the MPLS label stack.                            | {{!I-D.ietf-mpls-mna-hdr}}    |
+| ISD          | In-Stack Data            | Network actions and data encoded within the MPLS label stack.                            | {{!rfc9994}}    |
 | MLD_PSMH     | Maximum PSMH Size        | The maximum PSMH size a node can process, in 4-octet units.                              | This document                 |
 | RLD_PSMH     | RLD including PSMH       | The total parseable depth including label stack and PSMH, in 4-octet units.              | This document                 |
 {: #table_abbrev title="Abbreviations."}
@@ -120,7 +125,7 @@ This section defines the parameters that an LSR uses to signal its MNA capabilit
 
 ### The Readable Label Depth (RLD)
 
-The Readable Label Depth (RLD) is the number of LSEs an LSR can parse without performance impact {{?I-D.ietf-mpls-mna-fwk}}.
+The Readable Label Depth (RLD) is the number of LSEs an LSR can parse without performance impact {{?rfc9789}}.
 An LSR is required to search the MPLS stack for NAS that have to be processed by the LSR.
 To that end, the network actions must be within the RLD of the node.
 For HBH-scoped network actions, the ingress LER that pushes the network actions MUST ensure that the actions are readable at each LSR on the path, i.e., that they are placed within the RLD of each node.
@@ -140,12 +145,12 @@ An RLD of 8 is required in this example to read the entire MPLS stack.
 This section gives a motivation for signaling maximum NAS sizes and then introduces the NAS Maximum Label Depth (MLD_NAS).
 
 #### Motivation
-A NAS in the MNA header encoding is at least 2 LSEs and at most 17 LSEs large {{!I-D.ietf-mpls-mna-hdr}}.
+A NAS in the MNA header encoding is at least 2 LSEs and at most 17 LSEs large {{!rfc9994}}.
 At an LSR, one or more NAS, e.g., a select-scoped and a hop-by-hop-scoped NAS, are possible.
 With two maximum-sized NAS, an LSR is required to reserve 34 LSEs in hardware to be able to process network actions.
 This consumes hardware resources that may be needed to encode other LSEs, e.g., forwarding labels for SR-MPLS paths, or are not available in less capable devices.
 
-Many use cases in the MNA framework {{?I-D.ietf-mpls-mna-usecases}} do not require a maximum-sized NAS of 17 LSEs to encode network actions and their ancillary data.
+Many use cases in the MNA framework {{?rfc9791}} do not require a maximum-sized NAS of 17 LSEs to encode network actions and their ancillary data.
 Therefore, a NAS can be up to 17 LSEs but nodes can also support smaller maximum NAS.
 Signaling the maximum supported NAS size to the ingress LER prevents an LSR from receiving packets with a larger NAS than it supports.
 This way, the allocated resources for NAS can be reduced if smaller maximum NAS are supported.
@@ -156,7 +161,7 @@ The maximum supported number of LSEs in a NAS that an LSR can process is referre
 For each scope in MNA, a separate parameter for the MLD_NAS exists, called MLD_NAS_Select, MLD_NAS_HBH, and MLD_NAS_I2E.
 
 An LSR SHOULD signal the maximum-supported size of a NAS for each scope, i.e., the parameters MLD_NAS_Select, MLD_NAS_HBH, and MLD_NAS_I2E.
-Those parameters include the Format A, B, C, and D LSEs from {{!I-D.ietf-mpls-mna-hdr}} in a NAS.
+Those parameters include the Format A, B, C, and D LSEs from {{!rfc9994}} in a NAS.
 
 Based on the signaled parameters, the ingress LER MUST ensure the following when pushing the MPLS stack and NAS on a packet:
 
@@ -220,9 +225,24 @@ The MNA capability discovery mechanism operates as follows:
      - The path-wide MLD_NAS_HBH is the minimum MLD_NAS_HBH reported by any node.
      - The MLD_NAS_Select for a specific node is the value reported by that node.
      - The MLD_NAS_I2E is the value reported by the egress node.
-     - The path-wide supported opcodes for HBH-scoped NAS are the intersection of opcodes supported by all nodes.
+     - The path-wide supported opcodes for HBH-scoped NAS are the intersection of opcodes supported by all nodes. The supported opcodes for a select-scoped NAS are those reported by the node processing that NAS, and for an I2E-scoped NAS those reported by the egress node.
+     - Post-Stack capabilities are aggregated in the same way: Post-Stack MNA is available only if the decapsulating node reports PS_SUPPORTED, the path-wide MLD_PSMH and RLD_PSMH are the minima of the values reported by the nodes that process the PSMH, and the supported Post-Stack opcodes are aggregated per scope like the In-Stack opcodes.
 
 The ingress LER SHOULD perform MNA capability discovery before pushing MNA-enabled label stacks onto a path. The ingress LER SHOULD re-query capabilities when the path changes, e.g., due to IGP reconvergence or Fast Reroute activation.
+
+## Relationship to Path Selection {#path-selection}
+MNA capability discovery is not an input to path computation.
+Paths are selected by existing mechanisms without MNA capability information, and the mechanism defined in this document informs the ingress LER about the MNA constraints of the selected path before network actions are pushed onto it.
+
+Only coarse feasibility information needs to be available at path selection time, and such information already has an IGP home: the RLD can be advertised as MSD-Type 3 {{?rfc9789}} using the MSD advertisements of IS-IS {{?rfc8491}} and OSPF {{?rfc8476}}.
+In contrast, the detailed capability set, i.e., supported opcodes, per-scope NAS size limits, and Post-Stack parameters, is voluminous and only relevant for the specific paths on which an ingress LER intends to use MNA.
+Flooding this information through the IGP would burden all nodes in the domain with information that most of them never use.
+This document therefore probes the detailed capability set on demand and per path.
+
+If the discovered capabilities are not sufficient for the intended network actions, the ingress LER can adapt the NAS construction to the discovered constraints, or refrain from using MNA on that path.
+If the ingress LER can steer traffic, e.g., using SR-TE candidate paths or RSVP-TE explicit routes, it can also select an alternate candidate path or egress node and repeat the discovery there.
+In particular, when multiple candidate egress nodes exist, the ingress LER can probe each candidate in ping mode to select an egress node that supports the required network actions, e.g., the required MLD_NAS_I2E or Post-Stack decapsulation support.
+This iterative approach keeps the amount of flooded information minimal and requires neither routing protocol extensions nor a central controller.
 
 ## MNA Capabilities Query TLV
 The MNA Capabilities Query TLV is carried in the MPLS Echo Request message.
@@ -237,7 +257,7 @@ The fields are defined as follows:
 
 - Type: Indicates the MNA Capabilities Query TLV. The value is TBA1.
 - Length: The length of the Value field in octets. For this TLV, Length is 4 octets.
-- Query Flags: An 8-bit field indicating which capabilities are being queried:
+- Query Flags: An 8-bit field indicating which capabilities are being queried. Bit 0 is the most significant bit of the field:
 
 | Bit | Name              | Description                                                         |
 | --- | ----------------- | ------------------------------------------------------------------- |
@@ -305,7 +325,7 @@ The Post-Stack MNA Capabilities Sub-TLV reports whether the node supports Post-S
 
 - Sub-type: 3 (Post-Stack MNA Capabilities).
 - Length: 4 octets.
-- PS Flags: An 8-bit field.
+- PS Flags: An 8-bit field. Bit 0 is the most significant bit of the field.
   - Bit 0: PS_SUPPORTED. If set to 1, the node supports Post-Stack MNA processing as defined in {{!I-D.ietf-mpls-mna-ps-hdr}}. If set to 0, Post-Stack MNA is not supported and the remaining fields in this sub-TLV SHOULD be ignored.
   - Bits 1-7: Reserved. MUST be set to zero on transmit and MUST be ignored on receipt.
 - MLD_PSMH: An 8-bit unsigned integer indicating the maximum Post-Stack MPLS Header length (in 4-octet units, excluding the PSMH type header) that the node can process. A value of 0 indicates that the node did not provide this value. The valid range corresponds to the 8-bit PSMH-LEN field defined in {{!I-D.ietf-mpls-mna-ps-hdr}}.
@@ -357,8 +377,7 @@ If capabilities vary per interface, the node SHOULD report the capabilities appl
 
 ## MNA-incapable Nodes
 A node that does not support MNA will not recognize the MNA Capabilities Query TLV.
-According to RFC 8029, the handling depends on the TLV type value range.
-The TLV type for the MNA Capabilities Query TLV SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
+The TLV type for the MNA Capabilities Query TLV is assigned from the mandatory TLV range of {{!rfc8029}} (types 0-32767), so a node that does not recognize the TLV returns Return Code 2 ("One or more of the TLVs was not understood") in the echo reply.
 This allows the ingress LER to detect nodes that do not support MNA.
 
 If a node does not support MNA, but recognizes the MNA Capabilities Query TLV, it MUST include Return Code TBA3 in the MPLS echo reply message.
@@ -394,14 +413,14 @@ The security considerations described in {{!rfc8029}} apply to this document.
 The MNA capability discovery mechanism reveals information about node capabilities, which could potentially be exploited by an attacker to craft targeted attacks against nodes with limited MNA support.
 Nodes that support MNA capability discovery SHOULD support configuration options to enable or disable the MNA Capabilities Query/Response functionality.
 By default, MNA capability discovery SHOULD be enabled only within an MNA-capable MPLS domain.
-The security considerations from {{!I-D.ietf-mpls-mna-hdr}} and {{?rfc9789}} also apply.
+The security considerations from {{!rfc9994}} and {{?rfc9789}} also apply.
 
 # IANA Considerations
 This section requests new TLVs and sub-TLVs.
 
 ## TLV Assignments
-IANA is requested to assign two new TLVs from the "TLV" registry in the "Multiprotocol Label Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group.
-The TLV values SHOULD be assigned from the range that requires an error message if the TLV is not recognized.
+IANA is requested to assign two new TLVs from the "TLVs" registry in the "Multiprotocol Label Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group.
+The TLV values are requested from the range 0-16383 (Standards Action), in which a TLV MUST either be supported by an implementation or result in Return Code 2 ("One or more of the TLVs was not understood") in the echo reply {{!rfc8029}}.
 
 | Value | TLV Name                  | Reference     | Sub-TLV Registry    |
 | ----- | ------------------------- | ------------- | ------------------- |
@@ -410,7 +429,9 @@ The TLV values SHOULD be assigned from the range that requires an error message 
 {: #table_iana title="New TLVs."}
 
 ## New Sub-TLV Registry
-IANA is requested to create a new sub-TLV registry for TLV TBA2 with the following initial entries:
+IANA is requested to create a new "Sub-TLVs for TLV Type TBA2" registry in the "Multiprotocol Label Switching (MPLS) Label Switched Paths (LSPs) Ping Parameters" registry group.
+The value ranges and registration procedures of this registry are the same as those of the "TLVs" registry {{!rfc8029}}, i.e., 0-16383 and 32768-49161 (Standards Action), 16384-31739 and 49162-64507 (RFC Required), 31740-31743 and 64508-64511 (Experimental Use), and 31744-32767 and 64512-65535 (First Come First Served).
+The initial entries are as follows; all other values are Unassigned.
 
 | Sub-Type | Sub-TLV Name                 | Reference     |
 | -------- | ---------------------------- | ------------- |
@@ -420,6 +441,28 @@ IANA is requested to create a new sub-TLV registry for TLV TBA2 with the followi
 | 3        | Post-Stack MNA Capabilities  | This document |
 | 4        | Supported Post-Stack Opcodes | This document |
 {: #table_iana2 title="Sub-TLV Registry for TLV TBA2."}
+
+## Query Flags and PS Flags Registries
+IANA is requested to create a new "MNA Capabilities Query Flags" registry for the 8-bit Query Flags field of the MNA Capabilities Query TLV.
+The registration procedure is Standards Action.
+The initial entries are as follows; bits 4-7 are Unassigned.
+
+| Bit | Name              | Reference     |
+| --- | ----------------- | ------------- |
+| 0   | QUERY_RLD_MLD_NAS | This document |
+| 1   | QUERY_ISD_OPCODES | This document |
+| 2   | QUERY_PS_MNA      | This document |
+| 3   | QUERY_PS_OPCODES  | This document |
+{: #table_iana_qflags title="MNA Capabilities Query Flags Registry."}
+
+IANA is further requested to create a new "Post-Stack MNA Capabilities Flags" registry for the 8-bit PS Flags field of the Post-Stack MNA Capabilities Sub-TLV.
+The registration procedure is Standards Action.
+The initial entry is as follows; bits 1-7 are Unassigned.
+
+| Bit | Name         | Reference     |
+| --- | ------------ | ------------- |
+| 0   | PS_SUPPORTED | This document |
+{: #table_iana_psflags title="Post-Stack MNA Capabilities Flags Registry."}
 
 ## Return Code Assignment
 IANA is requested to assign a new Return Code from the "Return Code" registry in the "Multiprotocol Label
