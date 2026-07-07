@@ -1,5 +1,5 @@
 ---
-title: "Signaling MNA Capabilities Using LSP Ping"
+title: "Discovering MNA Capabilities Using LSP Ping"
 abbrev: "SIG"
 category: std
 
@@ -107,11 +107,11 @@ This document makes use of the terms defined in {{!rfc9994}} and in {{?rfc9789}}
 | Abbreviation | Name                     | Description                                                                              | Reference                     |
 | ------------ | ------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------- |
 | NAS          | Network Action Sub-stack | A stack of related LSEs in the MPLS stack containing network actions and ancillary data. | {{?rfc9789}}                  |
-| RLD          | Readable Label Depth     | The number of LSEs a node can parse.                                                     | {{!rfc9994}}    |
+| RLD          | Readable Label Depth     | The number of LSEs a node can parse.                                                     | {{!rfc9994}}                  |
 | MLD_NAS      | NAS Maximum Label Depth  | The maximum number of LSEs in a NAS that a node can process, defined per scope.          | This document                 |
 | PSMH         | Post-Stack MPLS Header   | The header after the BOS carrying post-stack network actions and ancillary data.         | {{!I-D.ietf-mpls-mna-ps-hdr}} |
 | PSD          | Post-Stack Data          | Network actions and data encoded after the MPLS label stack.                             | {{!I-D.ietf-mpls-mna-ps-hdr}} |
-| ISD          | In-Stack Data            | Network actions and data encoded within the MPLS label stack.                            | {{!rfc9994}}    |
+| ISD          | In-Stack Data            | Network actions and data encoded within the MPLS label stack.                            | {{!rfc9994}}                  |
 | MLD_PSMH     | Maximum PSMH Size        | The maximum PSMH size a node can process, in 4-octet units.                              | This document                 |
 | RLD_PSMH     | RLD including PSMH       | The total parseable depth including label stack and PSMH, in 4-octet units.              | This document                 |
 {: #table_abbrev title="Abbreviations."}
