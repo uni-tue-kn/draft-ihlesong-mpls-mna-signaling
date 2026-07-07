@@ -5,13 +5,13 @@
 Multiprotocol Label Switching                                    F. Ihle
 Internet-Draft                                   University of Tuebingen
 Intended status: Standards Track                                 X. Song
-Expires: 7 January 2027                                  ZTE Corporation
+Expires: 8 January 2027                                  ZTE Corporation
                                                                 M. Menth
                                                  University of Tuebingen
-                                                             6 July 2026
+                                                             7 July 2026
 
 
-               Signaling MNA Capabilities Using LSP Ping
+              Discovering MNA Capabilities Using LSP Ping
                 draft-ihlesong-mpls-mna-signaling-latest
 
 Abstract
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 January 2027.
+   This Internet-Draft will expire on 8 January 2027.
 
 Copyright Notice
 
